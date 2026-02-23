@@ -1,0 +1,110 @@
+[
+  {
+    "id": "wto-news",
+    "name": "WTO News",
+    "url": "https://www.wto.org/english/news_e/rss_e/rss_e.htm",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["trade", "exports", "imports"],
+    "priority": 1
+  },
+  {
+    "id": "ec-trade",
+    "name": "European Commission – Trade",
+    "url": "https://ec.europa.eu/commission/presscorner/api/rss?services=TRADE&limit=20",
+    "type": "rss",
+    "region": "UE",
+    "tags": ["EUDR", "CBAM", "CSRD", "trade"],
+    "priority": 1
+  },
+  {
+    "id": "ec-environment",
+    "name": "European Commission – Environment",
+    "url": "https://environment.ec.europa.eu/feeds/news_en.xml",
+    "type": "rss",
+    "region": "UE",
+    "tags": ["sustainability", "deforestation", "EUDR"],
+    "priority": 2
+  },
+  {
+    "id": "ifoam",
+    "name": "IFOAM Organics International",
+    "url": "https://www.ifoam.bio/feed",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["organic", "agriculture", "certification"],
+    "priority": 2
+  },
+  {
+    "id": "fsc-news",
+    "name": "FSC – Forest Stewardship Council",
+    "url": "https://fsc.org/en/rss.xml",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["forestry", "certification", "deforestation", "EUDR"],
+    "priority": 2
+  },
+  {
+    "id": "iscc-news",
+    "name": "ISCC System",
+    "url": "https://www.iscc-system.org/feed/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["biofuels", "ISCC", "certification", "sustainability"],
+    "priority": 2
+  },
+  {
+    "id": "senasa-ar",
+    "name": "SENASA Argentina",
+    "url": "https://www.argentina.gob.ar/api/noticias.rss?jurisdiccion=senasa",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["agriculture", "certification", "exports"],
+    "priority": 1
+  },
+  {
+    "id": "cancilleria-ar",
+    "name": "Cancillería Argentina – Comercio",
+    "url": "https://www.cancilleria.gob.ar/rss.xml",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["trade", "exports", "imports"],
+    "priority": 1
+  },
+  {
+    "id": "unctad",
+    "name": "UNCTAD News",
+    "url": "https://unctad.org/rss.xml",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["trade", "sustainability", "agriculture"],
+    "priority": 3
+  },
+  {
+    "id": "usda-fas",
+    "name": "USDA Foreign Agricultural Service",
+    "url": "https://www.fas.usda.gov/rss/newsReleases.xml",
+    "type": "rss",
+    "region": "USA",
+    "tags": ["agriculture", "exports", "imports"],
+    "priority": 2
+  },
+  {
+    "id": "epa-news",
+    "name": "EPA – Sustainability & Environment",
+    "url": "https://www.epa.gov/rss/epa-news.xml",
+    "type": "rss",
+    "region": "USA",
+    "tags": ["sustainability", "recycled", "textiles"],
+    "priority": 3
+  },
+  {
+    "id": "fao-news",
+    "name": "FAO – Food & Agriculture",
+    "url": "https://www.fao.org/feeds/agrovoc_latest_news.xml",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["agriculture", "forestry", "sustainability", "due diligence"],
+    "priority": 2
+  }
+]
