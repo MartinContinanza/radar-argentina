@@ -1,11 +1,11 @@
 [
   {
     "id": "wto-news",
-    "name": "WTO News",
+    "name": "WTO / OMC",
     "url": "https://www.wto.org/english/news_e/rss_e/rss_e.htm",
     "type": "rss",
     "region": "Global",
-    "tags": ["trade", "exports", "imports"],
+    "tags": ["trade", "exports/imports"],
     "priority": 1
   },
   {
@@ -27,17 +27,8 @@
     "priority": 2
   },
   {
-    "id": "ifoam",
-    "name": "IFOAM Organics International",
-    "url": "https://www.ifoam.bio/feed",
-    "type": "rss",
-    "region": "Global",
-    "tags": ["organic", "agriculture", "certification"],
-    "priority": 2
-  },
-  {
     "id": "fsc-news",
-    "name": "FSC – Forest Stewardship Council",
+    "name": "FSC Internacional",
     "url": "https://fsc.org/en/rss.xml",
     "type": "rss",
     "region": "Global",
@@ -50,7 +41,7 @@
     "url": "https://www.iscc-system.org/feed/",
     "type": "rss",
     "region": "Global",
-    "tags": ["biofuels", "ISCC", "certification", "sustainability"],
+    "tags": ["biofuels/ISCC", "certification", "sustainability"],
     "priority": 2
   },
   {
@@ -59,21 +50,30 @@
     "url": "https://www.argentina.gob.ar/api/noticias.rss?jurisdiccion=senasa",
     "type": "rss",
     "region": "AR",
-    "tags": ["agriculture", "certification", "exports"],
+    "tags": ["agriculture", "certification", "exports/imports"],
     "priority": 1
   },
   {
     "id": "cancilleria-ar",
-    "name": "Cancillería Argentina – Comercio",
+    "name": "Cancillería Argentina",
     "url": "https://www.cancilleria.gob.ar/rss.xml",
     "type": "rss",
     "region": "AR",
-    "tags": ["trade", "exports", "imports"],
+    "tags": ["trade", "exports/imports"],
     "priority": 1
   },
   {
+    "id": "ifoam",
+    "name": "IFOAM Organics",
+    "url": "https://www.ifoam.bio/feed",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["organic", "agriculture", "certification"],
+    "priority": 2
+  },
+  {
     "id": "unctad",
-    "name": "UNCTAD News",
+    "name": "UNCTAD",
     "url": "https://unctad.org/rss.xml",
     "type": "rss",
     "region": "Global",
@@ -82,29 +82,65 @@
   },
   {
     "id": "usda-fas",
-    "name": "USDA Foreign Agricultural Service",
+    "name": "USDA / FAS",
     "url": "https://www.fas.usda.gov/rss/newsReleases.xml",
     "type": "rss",
     "region": "USA",
-    "tags": ["agriculture", "exports", "imports"],
+    "tags": ["agriculture", "exports/imports"],
     "priority": 2
   },
   {
-    "id": "epa-news",
-    "name": "EPA – Sustainability & Environment",
-    "url": "https://www.epa.gov/rss/epa-news.xml",
-    "type": "rss",
-    "region": "USA",
-    "tags": ["sustainability", "recycled", "textiles"],
-    "priority": 3
-  },
-  {
     "id": "fao-news",
-    "name": "FAO – Food & Agriculture",
+    "name": "FAO",
     "url": "https://www.fao.org/feeds/agrovoc_latest_news.xml",
     "type": "rss",
     "region": "Global",
     "tags": ["agriculture", "forestry", "sustainability", "due diligence"],
+    "priority": 2
+  },
+  {
+    "id": "clarin-economia",
+    "name": "Clarín – Economía",
+    "url": "https://www.clarin.com/rss/economia/",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["trade", "exports/imports"],
+    "priority": 2
+  },
+  {
+    "id": "clarin-rural",
+    "name": "Clarín Rural",
+    "url": "https://www.clarin.com/rss/rural/",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["agriculture", "exports/imports"],
+    "priority": 1
+  },
+  {
+    "id": "lanacion-economia",
+    "name": "La Nación – Economía",
+    "url": "https://www.lanacion.com.ar/arc/outboundfeeds/rss/categoria/economia/",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["trade", "exports/imports"],
+    "priority": 2
+  },
+  {
+    "id": "lanacion-campo",
+    "name": "La Nación – Campo",
+    "url": "https://www.lanacion.com.ar/arc/outboundfeeds/rss/categoria/campo/",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["agriculture", "exports/imports", "certification"],
+    "priority": 1
+  },
+  {
+    "id": "infobae-economia",
+    "name": "Infobae – Economía",
+    "url": "https://www.infobae.com/feeds/rss/economia/",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["trade", "exports/imports"],
     "priority": 2
   }
 ]
