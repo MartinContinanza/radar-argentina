@@ -17,6 +17,7 @@ export interface NewsItem {
   sourceRegion: string;
   tags: string[];
   summary: string;
+  image?: string;
 }
 
 export interface FetchResult {
