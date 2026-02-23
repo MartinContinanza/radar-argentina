@@ -1,88 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// In-memory cache: url -> { data, expiresAt }
 const cache = new Map<string, { data: ParsedItem[]; expiresAt: number }>();
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const CACHE_TTL = 30 * 60 * 1000;
 
 interface ParsedItem {
   title: string;
   link: string;
   pubDate: string | null;
   summary: string;
+  image: string | null;
 }
 
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ").trim();
+}
+
+function extractImage(block: string): string | null {
+  // 1. <media:content url="...">
+  const media = /media:content[^>]+url="([^"]+)"/.exec(block);
+  if (media) return media[1];
+
+  // 2. <media:thumbnail url="...">
+  const thumb = /media:thumbnail[^>]+url="([^"]+)"/.exec(block);
+  if (thumb) return thumb[1];
+
+  // 3. <enclosure type="image/..." url="...">
+  const enc = /enclosure[^>]+type="image\/[^"]*"[^>]+url="([^"]+)"/.exec(block)
+    || /enclosure[^>]+url="([^"]+)"[^>]+type="image\/[^"]*"/.exec(block);
+  if (enc) return enc[1];
+
+  // 4. First <img src="..."> inside description/content
+  const img = /<img[^>]+src="([^"]+)"/.exec(block);
+  if (img && !img[1].includes("pixel") && !img[1].includes("tracker")) return img[1];
+
+  return null;
 }
 
 function extractItems(xmlText: string): ParsedItem[] {
   const items: ParsedItem[] = [];
-
-  // Support both RSS <item> and Atom <entry>
   const itemRegex = /<(?:item|entry)[\s>]([\s\S]*?)<\/(?:item|entry)>/gi;
   let match;
 
   while ((match = itemRegex.exec(xmlText)) !== null) {
-    const block = match[1];
+    const b = match[1];
+    const title   = extractTag(b, "title") ?? "(sin título)";
+    const link    = extractTag(b, "link") ?? extractAttr(b, "link", "href") ?? extractTag(b, "guid") ?? "";
+    const pubDate = extractTag(b, "pubDate") ?? extractTag(b, "published") ?? extractTag(b, "updated") ?? null;
+    const rawSum  = extractTag(b, "description") ?? extractTag(b, "summary") ?? extractTag(b, "content") ?? "";
+    const summary = stripHtml(rawSum).slice(0, 400);
+    const image   = extractImage(b);
 
-    const title = extractTag(block, "title") ?? "(sin título)";
-    const link =
-      extractTag(block, "link") ??
-      extractAttr(block, "link", "href") ??
-      extractTag(block, "guid") ??
-      "";
-    const pubDate =
-      extractTag(block, "pubDate") ??
-      extractTag(block, "published") ??
-      extractTag(block, "updated") ??
-      null;
-    const rawSummary =
-      extractTag(block, "description") ??
-      extractTag(block, "summary") ??
-      extractTag(block, "content") ??
-      "";
-
-    const summary = stripHtml(rawSummary).slice(0, 400);
-
-    items.push({ title: stripHtml(title), link: link.trim(), pubDate, summary });
+    items.push({ title: stripHtml(title), link: link.trim(), pubDate, summary, image });
   }
-
   return items;
 }
 
 function extractTag(xml: string, tag: string): string | null {
-  // Try CDATA first, then plain text
-  const cdataRe = new RegExp(`<${tag}[^>]*>\\s*<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>\\s*<\/${tag}>`, "i");
-  const plainRe = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\/${tag}>`, "i");
-  const cdataMatch = cdataRe.exec(xml);
-  if (cdataMatch) return cdataMatch[1].trim();
-  const plainMatch = plainRe.exec(xml);
-  if (plainMatch) return plainMatch[1].trim();
-  return null;
+  const cd = new RegExp(`<${tag}[^>]*>\\s*<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>\\s*<\\/${tag}>`, "i").exec(xml);
+  if (cd) return cd[1].trim();
+  const pl = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i").exec(xml);
+  return pl ? pl[1].trim() : null;
 }
 
 function extractAttr(xml: string, tag: string, attr: string): string | null {
-  const re = new RegExp(`<${tag}[^>]+${attr}="([^"]+)"`, "i");
-  const m = re.exec(xml);
+  const m = new RegExp(`<${tag}[^>]+${attr}="([^"]+)"`, "i").exec(xml);
   return m ? m[1] : null;
 }
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
-  if (!url) {
-    return NextResponse.json({ error: "Missing url param" }, { status: 400 });
-  }
+  if (!url) return NextResponse.json({ error: "Missing url param" }, { status: 400 });
 
-  // Check cache
   const cached = cache.get(url);
   if (cached && cached.expiresAt > Date.now()) {
     return NextResponse.json({ items: cached.data, cached: true });
@@ -94,19 +86,16 @@ export async function GET(req: NextRequest) {
 
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { "User-Agent": "RadarArgentina/1.0 (RSS aggregator)" },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; RadarArgentina/1.0)" },
     });
     clearTimeout(timeout);
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const text = await response.text();
     const items = extractItems(text);
 
     cache.set(url, { data: items, expiresAt: Date.now() + CACHE_TTL });
-
     return NextResponse.json({ items, cached: false });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
