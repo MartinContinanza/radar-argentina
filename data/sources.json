@@ -24,7 +24,7 @@
     "type": "rss",
     "region": "UE",
     "tags": ["sustainability", "deforestation", "EUDR"],
-    "priority": 2
+    "priority": 1
   },
   {
     "id": "fsc-news",
@@ -42,7 +42,7 @@
     "type": "rss",
     "region": "Global",
     "tags": ["biofuels/ISCC", "certification", "sustainability"],
-    "priority": 2
+    "priority": 1
   },
   {
     "id": "senasa-ar",
@@ -99,21 +99,21 @@
     "priority": 2
   },
   {
-    "id": "clarin-economia",
-    "name": "Clarín – Economía",
-    "url": "https://www.clarin.com/rss/economia/",
-    "type": "rss",
-    "region": "AR",
-    "tags": ["trade", "exports/imports"],
-    "priority": 2
-  },
-  {
     "id": "clarin-rural",
     "name": "Clarín Rural",
     "url": "https://www.clarin.com/rss/rural/",
     "type": "rss",
     "region": "AR",
     "tags": ["agriculture", "exports/imports"],
+    "priority": 1
+  },
+  {
+    "id": "lanacion-campo",
+    "name": "La Nación – Campo",
+    "url": "https://www.lanacion.com.ar/arc/outboundfeeds/rss/categoria/campo/",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["agriculture", "exports/imports", "certification"],
     "priority": 1
   },
   {
@@ -126,15 +126,6 @@
     "priority": 2
   },
   {
-    "id": "lanacion-campo",
-    "name": "La Nación – Campo",
-    "url": "https://www.lanacion.com.ar/arc/outboundfeeds/rss/categoria/campo/",
-    "type": "rss",
-    "region": "AR",
-    "tags": ["agriculture", "exports/imports", "certification"],
-    "priority": 1
-  },
-  {
     "id": "infobae-economia",
     "name": "Infobae – Economía",
     "url": "https://www.infobae.com/feeds/rss/economia/",
@@ -142,5 +133,68 @@
     "region": "AR",
     "tags": ["trade", "exports/imports"],
     "priority": 2
+  },
+  {
+    "id": "bichos-campo",
+    "name": "Bichos de Campo",
+    "url": "https://bichosdecampo.com/feed/",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["agriculture", "organic", "certification", "exports/imports"],
+    "priority": 1
+  },
+  {
+    "id": "ecowatch",
+    "name": "EcoWatch",
+    "url": "https://www.ecowatch.com/rss/all",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["sustainability", "deforestation", "recycled"],
+    "priority": 2
+  },
+  {
+    "id": "sustainablefoodtrust",
+    "name": "Sustainable Food Trust",
+    "url": "https://sustainablefoodtrust.org/feed/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["organic", "agriculture", "sustainability", "certification"],
+    "priority": 2
+  },
+  {
+    "id": "textileexchange",
+    "name": "Textile Exchange",
+    "url": "https://textileexchange.org/feed/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["textiles", "recycled", "certification", "sustainability"],
+    "priority": 1
+  },
+  {
+    "id": "euractiv-env",
+    "name": "Euractiv – Ambiente",
+    "url": "https://www.euractiv.com/sections/energy-environment/feed/",
+    "type": "rss",
+    "region": "UE",
+    "tags": ["EUDR", "CBAM", "CSRD", "sustainability", "deforestation"],
+    "priority": 1
+  },
+  {
+    "id": "epa-news",
+    "name": "EPA",
+    "url": "https://www.epa.gov/rss/epa-news.xml",
+    "type": "rss",
+    "region": "USA",
+    "tags": ["sustainability", "recycled", "textiles"],
+    "priority": 3
+  },
+  {
+    "id": "roundtable-soy",
+    "name": "RTRS – Soja Responsable",
+    "url": "https://www.responsiblesoy.org/feed/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["agriculture", "certification", "sustainability", "deforestation"],
+    "priority": 1
   }
 ]
