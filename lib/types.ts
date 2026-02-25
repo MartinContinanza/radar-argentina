@@ -18,6 +18,8 @@ export interface NewsItem {
   tags: string[];
   summary: string;
   image?: string;
+  translatedTitle?: string;
+  translatedSummary?: string;
 }
 
 export interface FetchResult {
