@@ -128,7 +128,7 @@
   {
     "id": "infobae-economia",
     "name": "Infobae – Economía",
-    "url": "https://www.infobae.com/feeds/rss/economia/",
+    "url": "https://www.infobae.com/economia/",
     "type": "rss",
     "region": "AR",
     "tags": ["trade", "exports/imports"],
