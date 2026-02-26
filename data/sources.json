@@ -83,7 +83,7 @@
   {
     "id": "usda-fas",
     "name": "USDA / FAS",
-    "url": "https://www.fas.usda.gov/rss/newsReleases.xml",
+    "url": "https://www.fas.usda.gov/newsroom/search",
     "type": "rss",
     "region": "USA",
     "tags": ["agriculture", "exports/imports"],
