@@ -182,7 +182,7 @@
   {
     "id": "epa-news",
     "name": "EPA",
-    "url": "https://www.epa.gov/newsreleases/search",
+    "url": "https://www.epa.gov/newsreleases/search?f%5B0%5D=news_releases_language%3Aen",
     "type": "rss",
     "region": "USA",
     "tags": ["sustainability", "recycled", "textiles"],
