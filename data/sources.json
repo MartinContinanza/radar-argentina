@@ -110,7 +110,7 @@
   {
     "id": "lanacion-campo",
     "name": "La Nación – Campo",
-    "url": "https://www.lanacion.com.ar/arc/outboundfeeds/rss/categoria/campo/",
+    "url": "https://www.lanacion.com.ar/economia/campo/",
     "type": "rss",
     "region": "AR",
     "tags": ["agriculture", "exports/imports", "certification"],
