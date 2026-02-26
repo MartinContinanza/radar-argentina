@@ -47,7 +47,7 @@
   {
     "id": "senasa-ar",
     "name": "SENASA Argentina",
-    "url": "https://www.argentina.gob.ar/api/noticias.rss?jurisdiccion=senasa",
+    "url": "https://www.argentina.gob.ar/senasa/senasacomunica",
     "type": "rss",
     "region": "AR",
     "tags": ["agriculture", "certification", "exports/imports"],
