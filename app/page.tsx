@@ -9,6 +9,26 @@ import { detectTags, ALL_TAGS } from "../lib/tagging";
 const sources: Source[] = sourcesRaw as Source[];
 const PAGE_SIZE = 30;
 
+// ─── Default images by region/source ─────────────────────────────────────────
+const SOURCE_DEFAULTS: Record<string, string> = {
+  "European Commission – Trade": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1280px-Flag_of_Europe.svg.png",
+  "European Commission – Environment": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1280px-Flag_of_Europe.svg.png",
+  "Euractiv – Ambiente": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1280px-Flag_of_Europe.svg.png",
+};
+
+const REGION_DEFAULTS: Record<string, string> = {
+  UE: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1280px-Flag_of_Europe.svg.png",
+  AR: "/default-ar.jpg",
+  USA: "/default-usa.jpg",
+  Global: "/default-global.jpg",
+};
+
+function getDefaultImage(item: NewsItem): string {
+  if (SOURCE_DEFAULTS[item.sourceName]) return SOURCE_DEFAULTS[item.sourceName];
+  if (REGION_DEFAULTS[item.sourceRegion]) return REGION_DEFAULTS[item.sourceRegion];
+  return "/default-global.jpg";
+}
+
 // ─── Translation ──────────────────────────────────────────────────────────────
 async function translateText(text: string): Promise<string> {
   try {
@@ -104,21 +124,34 @@ function Card({ item, lang, onTranslate, translating, isFav, onToggleFav }: {
   const title = lang === "es" && item.translatedTitle ? item.translatedTitle : item.title;
   const summary = lang === "es" && item.translatedSummary ? item.translatedSummary : item.summary;
 
+  // Always show an image: use item's image, or fall back to a default
+  const displayImage = item.image || getDefaultImage(item);
+  const isDefaultImg = !item.image;
+
   return (
     <article className="group bg-slate-800/60 rounded-xl border border-slate-700/60 overflow-hidden hover:border-[#3EB2ED]/50 hover:bg-slate-800 transition-all duration-200 flex flex-col">
-      {item.image && (
-        <div className="relative w-full h-40 overflow-hidden bg-slate-700 shrink-0">
-          <img src={item.image} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-            onError={e => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-800/80 to-transparent" />
-          <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded border ${rc}`}>{item.sourceRegion}</span>
-        </div>
-      )}
+      <div className="relative w-full h-40 overflow-hidden bg-slate-700/80 shrink-0">
+        <img
+          src={displayImage}
+          alt=""
+          className={`w-full h-full object-cover transition-all duration-500 ${
+            isDefaultImg
+              ? "opacity-30 group-hover:opacity-40 scale-105"
+              : "opacity-80 group-hover:opacity-100 group-hover:scale-105"
+          }`}
+          onError={e => {
+            // If even the default fails, show a plain slate background
+            const img = e.target as HTMLImageElement;
+            img.style.display = "none";
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-800/80 to-transparent" />
+        <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded border ${rc}`}>{item.sourceRegion}</span>
+      </div>
       <div className="p-4 flex flex-col gap-2 flex-1">
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs font-semibold text-[#3EB2ED] uppercase tracking-wider truncate">{item.sourceName}</span>
           <div className="flex items-center gap-1.5 shrink-0">
-            {!item.image && <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${rc}`}>{item.sourceRegion}</span>}
             <span className="text-xs text-slate-500">{fmtDate(item.publishedAt)}</span>
             {/* Favorite star */}
             <button onClick={() => onToggleFav(item.id)}
@@ -321,7 +354,7 @@ export default function Home() {
         {pageItems.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              {pageItems.map((item, i) => (
+              {pageItems.map((item) => (
                 <Card key={item.id} item={item} lang={lang}
                   onTranslate={handleTranslate} translating={translatingIds.has(item.id)}
                   isFav={favorites.has(item.id)} onToggleFav={toggleFav} />
