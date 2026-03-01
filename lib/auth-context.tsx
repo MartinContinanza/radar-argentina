@@ -66,23 +66,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // onAuthStateChange fires immediately with the current session,
-    // including after email confirmation redirect — this is the single
-    // source of truth for session state.
+    let mounted = true;
+
+    // First: check for existing session immediately
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!mounted) return;
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        if (mounted) setUser(profile);
+      }
+      if (mounted) setLoading(false);
+    });
+
+    // Then: listen for changes (login, logout, token refresh, email confirm)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
         if (session?.user) {
           const profile = await fetchProfile(session.user.id);
-          setUser(profile);
+          if (mounted) {
+            setUser(profile);
+            setLoading(false);
+          }
         } else {
-          setUser(null);
+          if (mounted) {
+            setUser(null);
+            setLoading(false);
+          }
         }
-        // Mark loading done after first event fires
-        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = useCallback(
