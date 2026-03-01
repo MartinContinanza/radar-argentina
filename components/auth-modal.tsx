@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
-import { useAuth } from "./auth-context";
+import { useAuth } from "../lib/auth-context";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
