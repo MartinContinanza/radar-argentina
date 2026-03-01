@@ -68,17 +68,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // First: check for existing session immediately
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!mounted) return;
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        if (mounted) setUser(profile);
+    async function initAuth() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        if (session?.user) {
+          const profile = await fetchProfile(session.user.id);
+          if (mounted) setUser(profile);
+        }
+      } catch (e) {
+        console.error("Auth init error:", e);
+      } finally {
+        if (mounted) setLoading(false);
       }
-      if (mounted) setLoading(false);
-    });
+    }
 
-    // Then: listen for changes (login, logout, token refresh, email confirm)
+    initAuth();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
@@ -97,9 +103,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
+    // Safety net: if still loading after 5s, force stop
+    const timeout = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 5000);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      clearTimeout(timeout);
     };
   }, []);
 
