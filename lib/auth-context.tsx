@@ -96,11 +96,11 @@ function saveDB(db: StoredUser[]) {
 // Seed a default admin for demo purposes
 function seedAdmin() {
   const db = getDB();
-  if (!db.find((u) => u.email === "admin@controlunion.com")) {
+  if (!db.find((u) => u.email === "mcontinanza@controlunion.com")) {
     db.push({
       id: "admin-seed",
-      email: "admin@controlunion.com",
-      name: "Administrador",
+      email: "mcontinanza@controlunion.com",
+      name: "mcontinanza",
       passwordHash: btoa("admin1234"), // demo only — use proper hashing in prod
       isAdminFlag: true,
       createdAt: new Date().toISOString(),
