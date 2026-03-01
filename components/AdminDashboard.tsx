@@ -320,8 +320,13 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <Shell>
-        <div className="max-w-6xl mx-auto px-4 py-16 flex items-center justify-center">
+        <div className="max-w-6xl mx-auto px-4 py-16 flex flex-col items-center justify-center gap-4">
           <span className="w-6 h-6 rounded-full border-2 border-[#3EB2ED] border-t-transparent animate-spin" />
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 text-xs text-slate-400 font-mono space-y-1">
+            <p>loading: <span className="text-yellow-400">true</span></p>
+            <p>user: <span className="text-yellow-400">{user ? user.email : "null"}</span></p>
+            <p>isAdmin: <span className="text-yellow-400">{String(isAdmin)}</span></p>
+          </div>
         </div>
       </Shell>
     );
