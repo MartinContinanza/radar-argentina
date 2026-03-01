@@ -1,24 +1,9 @@
 "use client";
-/**
- * auth-modal.tsx
- * ─────────────────────────────────────────────────────────────
- * Modal popup for Login / Register / Password Recovery.
- *
- * USAGE (in Shell.tsx):
- *   import { AuthModal, AuthButton } from "./auth-modal";
- *   // Add <AuthButton /> in the header area
- *   // Add <AuthModal /> anywhere (renders via portal to body)
- * ─────────────────────────────────────────────────────────────
- */
-
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../lib/auth-context";
 
-// ── Types ──────────────────────────────────────────────────────────────────
-
 type View = "login" | "register" | "reset" | "reset-sent" | "success";
-
-// ── Icons ──────────────────────────────────────────────────────────────────
 
 function IconMail() {
   return (
@@ -65,62 +50,32 @@ function IconEye({ show }: { show: boolean }) {
   );
 }
 
-// ── Input ──────────────────────────────────────────────────────────────────
-
 function Input({
-  icon,
-  type = "text",
-  placeholder,
-  value,
-  onChange,
-  autoComplete,
-  rightSlot,
+  icon, type = "text", placeholder, value, onChange, autoComplete, rightSlot,
 }: {
-  icon: React.ReactNode;
-  type?: string;
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
-  autoComplete?: string;
-  rightSlot?: React.ReactNode;
+  icon: React.ReactNode; type?: string; placeholder: string; value: string;
+  onChange: (v: string) => void; autoComplete?: string; rightSlot?: React.ReactNode;
 }) {
   return (
     <div className="relative flex items-center">
       <span className="absolute left-3.5 text-slate-500 pointer-events-none">{icon}</span>
       <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        autoComplete={autoComplete}
+        type={type} placeholder={placeholder} value={value} autoComplete={autoComplete}
         onChange={(e) => onChange(e.target.value)}
         className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-10 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-[#3EB2ED] focus:ring-1 focus:ring-[#3EB2ED]/30 transition-all"
       />
-      {rightSlot && (
-        <span className="absolute right-3 text-slate-500">{rightSlot}</span>
-      )}
+      {rightSlot && <span className="absolute right-3 text-slate-500">{rightSlot}</span>}
     </div>
   );
 }
 
-// ── Role badge helper ──────────────────────────────────────────────────────
-
 function roleBadge(email: string) {
   const domain = email.split("@")[1]?.toLowerCase();
   if (domain === "controlunion.com") {
-    return (
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-900/60 text-sky-300 border border-sky-700">
-        INTERNO
-      </span>
-    );
+    return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-900/60 text-sky-300 border border-sky-700">INTERNO</span>;
   }
-  return (
-    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-700 text-slate-400 border border-slate-600">
-      EXTERNO
-    </span>
-  );
+  return <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-700 text-slate-400 border border-slate-600">EXTERNO</span>;
 }
-
-// ── Modal Content ──────────────────────────────────────────────────────────
 
 function ModalContent({ onClose }: { onClose: () => void }) {
   const { login, register, sendPasswordReset } = useAuth();
@@ -128,25 +83,17 @@ function ModalContent({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showPw, setShowPw] = useState(false);
-
-  // Login
   const [lEmail, setLEmail] = useState("");
   const [lPw, setLPw] = useState("");
-
-  // Register
   const [rName, setRName] = useState("");
   const [rEmail, setREmail] = useState("");
   const [rPw, setRPw] = useState("");
-
-  // Reset
   const [resetEmail, setResetEmail] = useState("");
 
   function clearError() { setError(""); }
 
   async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    clearError();
-    setBusy(true);
+    e.preventDefault(); clearError(); setBusy(true);
     const res = await login(lEmail, lPw);
     setBusy(false);
     if (res.error) { setError(res.error); return; }
@@ -155,9 +102,7 @@ function ModalContent({ onClose }: { onClose: () => void }) {
   }
 
   async function handleRegister(e: React.FormEvent) {
-    e.preventDefault();
-    clearError();
-    setBusy(true);
+    e.preventDefault(); clearError(); setBusy(true);
     const res = await register(rName, rEmail, rPw);
     setBusy(false);
     if (res.error) { setError(res.error); return; }
@@ -166,297 +111,178 @@ function ModalContent({ onClose }: { onClose: () => void }) {
   }
 
   async function handleReset(e: React.FormEvent) {
-    e.preventDefault();
-    clearError();
-    setBusy(true);
+    e.preventDefault(); clearError(); setBusy(true);
     await sendPasswordReset(resetEmail);
     setBusy(false);
     setView("reset-sent");
   }
 
-  // ── Success ─────────────────────────────────────────────────────────────
-  if (view === "success") {
-    return (
-      <div className="flex flex-col items-center justify-center py-10 gap-4">
-        <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-3xl">
-          ✓
-        </div>
-        <p className="font-bold text-white text-lg">¡Bienvenido!</p>
-        <p className="text-slate-400 text-sm">Sesión iniciada correctamente.</p>
-      </div>
-    );
-  }
+  if (view === "success") return (
+    <div className="flex flex-col items-center justify-center py-10 gap-4">
+      <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-3xl">✓</div>
+      <p className="font-bold text-white text-lg">¡Bienvenido!</p>
+      <p className="text-slate-400 text-sm">Sesión iniciada correctamente.</p>
+    </div>
+  );
 
-  // ── Reset sent ───────────────────────────────────────────────────────────
-  if (view === "reset-sent") {
-    return (
-      <div className="flex flex-col items-center justify-center py-10 gap-4">
-        <div className="w-16 h-16 rounded-full bg-[#3EB2ED]/20 border border-[#3EB2ED]/40 flex items-center justify-center text-3xl">
-          ✉
-        </div>
-        <p className="font-bold text-white text-lg">Revisá tu email</p>
-        <p className="text-slate-400 text-sm text-center max-w-xs">
-          Si existe una cuenta para <span className="text-slate-200">{resetEmail}</span>, recibirás las instrucciones para restablecer tu contraseña.
-        </p>
-        <button onClick={() => setView("login")}
-          className="text-sm text-[#3EB2ED] hover:underline mt-2">
-          Volver al inicio de sesión
-        </button>
-      </div>
-    );
-  }
+  if (view === "reset-sent") return (
+    <div className="flex flex-col items-center justify-center py-10 gap-4">
+      <div className="w-16 h-16 rounded-full bg-[#3EB2ED]/20 border border-[#3EB2ED]/40 flex items-center justify-center text-3xl">✉</div>
+      <p className="font-bold text-white text-lg">Revisá tu email</p>
+      <p className="text-slate-400 text-sm text-center max-w-xs">
+        Si existe una cuenta para <span className="text-slate-200">{resetEmail}</span>, recibirás las instrucciones para restablecer tu contraseña.
+      </p>
+      <button onClick={() => setView("login")} className="text-sm text-[#3EB2ED] hover:underline mt-2">Volver al inicio de sesión</button>
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Tabs */}
       <div className="flex gap-1 bg-slate-900/80 rounded-xl p-1">
         {(["login", "register"] as View[]).map((v) => (
-          <button
-            key={v}
-            onClick={() => { setView(v); clearError(); }}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-              view === v
-                ? "bg-[#3EB2ED] text-white shadow"
-                : "text-slate-500 hover:text-slate-300"
-            }`}
-          >
+          <button key={v} onClick={() => { setView(v); clearError(); }}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${view === v ? "bg-[#3EB2ED] text-white shadow" : "text-slate-500 hover:text-slate-300"}`}>
             {v === "login" ? "Iniciar sesión" : "Registrarse"}
           </button>
         ))}
       </div>
 
-      {/* Error */}
       {error && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-400 flex items-center gap-2">
           <span>⚠</span> {error}
         </div>
       )}
 
-      {/* ── LOGIN ─────────────────────────────────────────────────────── */}
       {view === "login" && (
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
-          <Input
-            icon={<IconMail />}
-            type="email"
-            placeholder="correo@ejemplo.com"
-            value={lEmail}
-            onChange={setLEmail}
-            autoComplete="email"
-          />
-          <Input
-            icon={<IconLock />}
-            type={showPw ? "text" : "password"}
-            placeholder="Contraseña"
-            value={lPw}
-            onChange={setLPw}
-            autoComplete="current-password"
-            rightSlot={
-              <button type="button" onClick={() => setShowPw((v) => !v)} className="hover:text-slate-300 transition-colors">
-                <IconEye show={showPw} />
-              </button>
-            }
-          />
-
+          <Input icon={<IconMail />} type="email" placeholder="correo@ejemplo.com" value={lEmail} onChange={setLEmail} autoComplete="email" />
+          <Input icon={<IconLock />} type={showPw ? "text" : "password"} placeholder="Contraseña" value={lPw} onChange={setLPw} autoComplete="current-password"
+            rightSlot={<button type="button" onClick={() => setShowPw(v => !v)} className="hover:text-slate-300 transition-colors"><IconEye show={showPw} /></button>} />
           <button type="button" onClick={() => { setView("reset"); setResetEmail(lEmail); clearError(); }}
             className="text-xs text-slate-500 hover:text-[#3EB2ED] transition-colors text-left -mt-1">
             ¿Olvidaste tu contraseña?
           </button>
-
           <button type="submit" disabled={busy || !lEmail || !lPw}
             className="w-full py-2.5 rounded-xl bg-[#3EB2ED] hover:bg-[#1a8fc7] disabled:opacity-40 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2">
-            {busy ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
+            {busy && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
             {busy ? "Ingresando…" : "Ingresar"}
           </button>
-
-          <p className="text-xs text-center text-slate-600">
-            Demo admin: <span className="text-slate-400">admin@controlunion.com</span> / <span className="text-slate-400">admin1234</span>
-          </p>
         </form>
       )}
 
-      {/* ── REGISTER ──────────────────────────────────────────────────── */}
       {view === "register" && (
         <form onSubmit={handleRegister} className="flex flex-col gap-4">
-          <Input
-            icon={<IconUser />}
-            placeholder="Tu nombre completo"
-            value={rName}
-            onChange={setRName}
-            autoComplete="name"
-          />
+          <Input icon={<IconUser />} placeholder="Tu nombre completo" value={rName} onChange={setRName} autoComplete="name" />
           <div className="flex flex-col gap-1.5">
-            <Input
-              icon={<IconMail />}
-              type="email"
-              placeholder="correo@ejemplo.com"
-              value={rEmail}
-              onChange={setREmail}
-              autoComplete="email"
-            />
+            <Input icon={<IconMail />} type="email" placeholder="correo@ejemplo.com" value={rEmail} onChange={setREmail} autoComplete="email" />
             {rEmail.includes("@") && (
               <div className="flex items-center gap-2 px-1">
                 {roleBadge(rEmail)}
                 <span className="text-[10px] text-slate-600">
-                  {rEmail.split("@")[1]?.toLowerCase() === "controlunion.com"
-                    ? "Acceso como usuario interno de Control Union"
-                    : "Acceso como usuario externo"}
+                  {rEmail.split("@")[1]?.toLowerCase() === "controlunion.com" ? "Acceso como usuario interno de Control Union" : "Acceso como usuario externo"}
                 </span>
               </div>
             )}
           </div>
-          <Input
-            icon={<IconLock />}
-            type={showPw ? "text" : "password"}
-            placeholder="Contraseña (mín. 8 caracteres)"
-            value={rPw}
-            onChange={setRPw}
-            autoComplete="new-password"
-            rightSlot={
-              <button type="button" onClick={() => setShowPw((v) => !v)} className="hover:text-slate-300 transition-colors">
-                <IconEye show={showPw} />
-              </button>
-            }
-          />
-
+          <Input icon={<IconLock />} type={showPw ? "text" : "password"} placeholder="Contraseña (mín. 8 caracteres)" value={rPw} onChange={setRPw} autoComplete="new-password"
+            rightSlot={<button type="button" onClick={() => setShowPw(v => !v)} className="hover:text-slate-300 transition-colors"><IconEye show={showPw} /></button>} />
           <button type="submit" disabled={busy || !rName || !rEmail || rPw.length < 8}
             className="w-full py-2.5 rounded-xl bg-[#3EB2ED] hover:bg-[#1a8fc7] disabled:opacity-40 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2">
-            {busy ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
+            {busy && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
             {busy ? "Creando cuenta…" : "Crear cuenta"}
           </button>
         </form>
       )}
 
-      {/* ── RESET ─────────────────────────────────────────────────────── */}
       {view === "reset" && (
         <form onSubmit={handleReset} className="flex flex-col gap-4">
-          <p className="text-sm text-slate-400 -mt-1">
-            Ingresá tu email y te enviaremos las instrucciones para restablecer tu contraseña.
-          </p>
-          <Input
-            icon={<IconMail />}
-            type="email"
-            placeholder="correo@ejemplo.com"
-            value={resetEmail}
-            onChange={setResetEmail}
-            autoComplete="email"
-          />
+          <p className="text-sm text-slate-400 -mt-1">Ingresá tu email y te enviaremos las instrucciones para restablecer tu contraseña.</p>
+          <Input icon={<IconMail />} type="email" placeholder="correo@ejemplo.com" value={resetEmail} onChange={setResetEmail} autoComplete="email" />
           <button type="submit" disabled={busy || !resetEmail}
             className="w-full py-2.5 rounded-xl bg-[#3EB2ED] hover:bg-[#1a8fc7] disabled:opacity-40 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2">
-            {busy ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
+            {busy && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
             {busy ? "Enviando…" : "Enviar instrucciones"}
           </button>
-          <button type="button" onClick={() => { setView("login"); clearError(); }}
-            className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
-            ← Volver
-          </button>
+          <button type="button" onClick={() => { setView("login"); clearError(); }} className="text-sm text-slate-500 hover:text-slate-300 transition-colors">← Volver</button>
         </form>
       )}
     </div>
   );
 }
 
-// ── Auth Modal (overlay + panel) ───────────────────────────────────────────
+// ── Modal con Portal — se renderiza directo en <body>, fuera del header ────
 
-export function AuthModal({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
+export function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [mounted, setMounted] = useState(false);
 
-  // Close on ESC
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
     if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Bloquear scroll del body mientras el modal está abierto
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
   }, [open, onClose]);
 
-  // Close on outside click
-  function handleBackdrop(e: React.MouseEvent) {
-    if (e.target === e.currentTarget) onClose();
-  }
+  if (!mounted || !open) return null;
 
-  if (!open) return null;
-
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center bg-slate-950/80 backdrop-blur-sm px-4 overflow-y-auto"
-      onClick={handleBackdrop}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(2, 6, 23, 0.85)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        ref={ref}
-        className="relative w-full max-w-sm bg-slate-800 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden my-20"
-        style={{
-          animation: "modalIn 0.2s cubic-bezier(.34,1.56,.64,1) both",
-        }}
+        className="relative w-full max-w-sm bg-slate-800 border border-slate-700/80 rounded-2xl shadow-2xl"
+        style={{ animation: "modalIn 0.2s cubic-bezier(.34,1.56,.64,1) both" }}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-700/60">
           <div className="flex items-center gap-2">
             <span className="text-[#3EB2ED]">◈</span>
             <span className="font-bold text-white tracking-tight">Radar</span>
           </div>
-          <button
-            onClick={onClose}
-            className="text-slate-500 hover:text-slate-300 transition-colors"
-          >
-            <IconClose />
-          </button>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 transition-colors"><IconClose /></button>
         </div>
-
-        {/* Body */}
         <div className="px-6 py-5">
           <ModalContent onClose={onClose} />
         </div>
       </div>
-
       <style>{`
         @keyframes modalIn {
           from { opacity: 0; transform: scale(0.93) translateY(8px); }
           to   { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 }
 
-// ── AuthButton (goes in Shell header) ─────────────────────────────────────
+// ── AuthButton ─────────────────────────────────────────────────────────────
 
 export function AuthButton() {
   const { user, logout, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
 
-  if (loading) {
-    return <div className="w-24 h-8 rounded-lg bg-slate-800 animate-pulse" />;
-  }
+  if (loading) return <div className="w-24 h-8 rounded-lg bg-slate-800 animate-pulse" />;
 
   if (user) {
-    const initials = user.name
-      .split(" ")
-      .map((w) => w[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
-
+    const initials = user.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
     const roleColors: Record<string, string> = {
-      admin: "bg-amber-500",
-      internal: "bg-sky-500",
-      external: "bg-slate-500",
+      admin: "bg-amber-500", internal: "bg-sky-500", external: "bg-slate-500",
     };
 
     return (
       <>
         <div className="relative">
-          <button
-            onClick={() => setDropOpen((v) => !v)}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-slate-700 hover:border-[#3EB2ED]/60 transition-all"
-          >
+          <button onClick={() => setDropOpen(v => !v)}
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-slate-700 hover:border-[#3EB2ED]/60 transition-all">
             <div className={`w-7 h-7 rounded-full ${roleColors[user.role]} flex items-center justify-center text-white text-xs font-bold`}>
               {initials}
             </div>
@@ -476,23 +302,19 @@ export function AuthButton() {
                   <p className="text-xs text-slate-500 truncate">{user.email}</p>
                 </div>
                 {user.role === "admin" && (
-                  <a href="/admin"
-                    onClick={() => setDropOpen(false)}
+                  <a href="/admin" onClick={() => setDropOpen(false)}
                     className="flex items-center gap-2.5 px-4 py-3 text-sm text-amber-400 hover:bg-slate-700/60 transition-colors border-b border-slate-700/40">
                     <span>⚙</span> Panel de admin
                   </a>
                 )}
-                <button
-                  onClick={() => { logout(); setDropOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-400 hover:bg-slate-700/60 hover:text-red-400 transition-colors text-left"
-                >
+                <button onClick={() => { logout(); setDropOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-400 hover:bg-slate-700/60 hover:text-red-400 transition-colors text-left">
                   <span>↩</span> Cerrar sesión
                 </button>
               </div>
             </>
           )}
         </div>
-
         <AuthModal open={open} onClose={() => setOpen(false)} />
       </>
     );
@@ -500,10 +322,8 @@ export function AuthButton() {
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-600 hover:border-[#3EB2ED] hover:text-[#3EB2ED] text-slate-300 text-sm font-semibold transition-all"
-      >
+      <button onClick={() => setOpen(true)}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-600 hover:border-[#3EB2ED] hover:text-[#3EB2ED] text-slate-300 text-sm font-semibold transition-all">
         <IconUser />
         <span className="hidden sm:block">Iniciar sesión</span>
       </button>
