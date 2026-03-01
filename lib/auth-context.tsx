@@ -35,24 +35,31 @@ interface AuthContextValue {
   isInternal: boolean;
 }
 
-async function fetchProfile(userId: string): Promise<RadarUser | null> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  console.log("fetchProfile:", { userId, data, error });
-
-  if (error || !data) return null;
-
-  return {
-    id: data.id,
-    email: data.email,
-    name: data.name,
-    role: data.role as UserRole,
-    createdAt: data.created_at,
-  };
+async function fetchProfile(userId: string, accessToken?: string): Promise<RadarUser | null> {
+  try {
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hvftwdsmwakqklnsymkd.supabase.co"}/rest/v1/profiles?id=eq.${userId}&select=*`;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2ZnR3ZHNtd2FrcWtsbnN5bWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTc1NDAsImV4cCI6MjA4Nzk3MzU0MH0.PofSC-juYgEzw3oSwVRjCLvr9TTwQUZT5PK-VXjbfl4";
+    const res = await fetch(url, {
+      headers: {
+        "apikey": key,
+        "Authorization": `Bearer ${accessToken || key}`,
+      },
+    });
+    const data = await res.json();
+    console.log("fetchProfile:", { userId, data });
+    if (!data || !data[0]) return null;
+    const p = data[0];
+    return {
+      id: p.id,
+      email: p.email,
+      name: p.name,
+      role: p.role as UserRole,
+      createdAt: p.created_at,
+    };
+  } catch (e) {
+    console.error("fetchProfile error:", e);
+    return null;
+  }
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
@@ -70,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("getSession:", { session: session?.user?.email, error });
         if (!mounted) return;
         if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
+          const profile = await fetchProfile(session.user.id, session.access_token);
           console.log("profile loaded:", profile);
           if (mounted) setUser(profile);
         }
@@ -88,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("onAuthStateChange:", event, session?.user?.email);
         if (!mounted) return;
         if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
+          const profile = await fetchProfile(session.user.id, session.access_token);
           if (mounted) {
             setUser(profile);
             setLoading(false);
