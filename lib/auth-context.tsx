@@ -1,17 +1,7 @@
 "use client";
 /**
- * auth-context.tsx
- * ─────────────────────────────────────────────────────────────
- * Global authentication context for Radar.
- *
- * USER TYPES:
- *   - "admin"    → @controlunion.com + flag admin=true  (gestión total)
- *   - "internal" → @controlunion.com                    (usuario interno)
- *   - "external" → cualquier otro dominio               (usuario externo)
- *
- * PRODUCTION: replace the mock functions with real API calls
- * (Supabase Auth, NextAuth, Firebase Auth, etc.)
- * ─────────────────────────────────────────────────────────────
+ * lib/auth-context.tsx
+ * Autenticación real con Supabase Auth + tabla profiles
  */
 
 import React, {
@@ -21,6 +11,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { supabase } from "./supabase-client";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -31,11 +22,7 @@ export interface RadarUser {
   email: string;
   name: string;
   role: UserRole;
-  avatar?: string;
   createdAt: string;
-  lastLoginAt: string;
-  newsletterSubs: string[];   // module ids subscribed
-  favorites: string[];        // news item ids
 }
 
 interface AuthContextValue {
@@ -52,206 +39,111 @@ interface AuthContextValue {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function deriveRole(email: string, isAdminFlag = false): UserRole {
-  const domain = email.split("@")[1]?.toLowerCase();
-  if (domain === "controlunion.com") {
-    return isAdminFlag ? "admin" : "internal";
-  }
-  return "external";
-}
+async function fetchProfile(userId: string): Promise<RadarUser | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
 
-function makeId() {
-  return Math.random().toString(36).slice(2, 10);
-}
+  if (error || !data) return null;
 
-// ── Mock DB (localStorage) ─────────────────────────────────────────────────
-// In production, replace with real API calls.
-
-const DB_KEY = "radar_users_db";
-const SESSION_KEY = "radar_session";
-
-interface StoredUser {
-  id: string;
-  email: string;
-  name: string;
-  passwordHash: string; // In production: NEVER store passwords client-side
-  isAdminFlag: boolean;
-  createdAt: string;
-  newsletterSubs: string[];
-  favorites: string[];
-}
-
-function getDB(): StoredUser[] {
-  try {
-    return JSON.parse(localStorage.getItem(DB_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveDB(db: StoredUser[]) {
-  localStorage.setItem(DB_KEY, JSON.stringify(db));
-}
-
-// Seed a default admin for demo purposes
-function seedAdmin() {
-  const db = getDB();
-  if (!db.find((u) => u.email === "mcontinanza@controlunion.com")) {
-    db.push({
-      id: "admin-seed",
-      email: "mcontinanza@controlunion.com",
-      name: "mcontinanza",
-      passwordHash: btoa("admin1234"), // demo only — use proper hashing in prod
-      isAdminFlag: true,
-      createdAt: new Date().toISOString(),
-      newsletterSubs: [],
-      favorites: [],
-    });
-    saveDB(db);
-  }
-}
-
-function hashPassword(pw: string) {
-  // Demo only — use bcrypt/argon2 server-side in production
-  return btoa(pw);
+  return {
+    id: data.id,
+    email: data.email,
+    name: data.name,
+    role: data.role as UserRole,
+    createdAt: data.created_at,
+  };
 }
 
 // ── Context ────────────────────────────────────────────────────────────────
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = React.createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<RadarUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Rehydrate session on mount
   useEffect(() => {
-    try {
-      seedAdmin();
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (raw) {
-        const stored: RadarUser = JSON.parse(raw);
-        setUser(stored);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        setUser(profile);
       }
-    } catch {
-      /* ignore */
-    } finally {
       setLoading(false);
-    }
-  }, []);
+    });
 
-  const persistSession = (u: RadarUser) => {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(u));
-    setUser(u);
-  };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          const profile = await fetchProfile(session.user.id);
+          setUser(profile);
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const login = useCallback(
     async (email: string, password: string): Promise<{ error?: string }> => {
-      await new Promise((r) => setTimeout(r, 600)); // simulate network
-      const db = getDB();
-      const found = db.find(
-        (u) =>
-          u.email.toLowerCase() === email.toLowerCase() &&
-          u.passwordHash === hashPassword(password)
-      );
-      if (!found) return { error: "Email o contraseña incorrectos." };
-
-      const role = deriveRole(found.email, found.isAdminFlag);
-      const radarUser: RadarUser = {
-        id: found.id,
-        email: found.email,
-        name: found.name,
-        role,
-        createdAt: found.createdAt,
-        lastLoginAt: new Date().toISOString(),
-        newsletterSubs: found.newsletterSubs,
-        favorites: found.favorites,
-      };
-
-      // Update last login in DB
-      const idx = db.indexOf(found);
-      db[idx] = { ...found };
-      saveDB(db);
-
-      persistSession(radarUser);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          return { error: "Email o contraseña incorrectos." };
+        }
+        return { error: error.message };
+      }
       return {};
     },
     []
   );
 
   const register = useCallback(
-    async (
-      name: string,
-      email: string,
-      password: string
-    ): Promise<{ error?: string }> => {
-      await new Promise((r) => setTimeout(r, 600));
-      const db = getDB();
-      if (db.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
-        return { error: "Ya existe una cuenta con ese email." };
-      }
+    async (name: string, email: string, password: string): Promise<{ error?: string }> => {
       if (password.length < 8) {
         return { error: "La contraseña debe tener al menos 8 caracteres." };
       }
 
-      const newUser: StoredUser = {
-        id: makeId(),
+      const { error } = await supabase.auth.signUp({
         email,
-        name,
-        passwordHash: hashPassword(password),
-        isAdminFlag: false,
-        createdAt: new Date().toISOString(),
-        newsletterSubs: [],
-        favorites: [],
-      };
-      db.push(newUser);
-      saveDB(db);
+        password,
+        options: { data: { name } },
+      });
 
-      const role = deriveRole(email, false);
-      const radarUser: RadarUser = {
-        id: newUser.id,
-        email,
-        name,
-        role,
-        createdAt: newUser.createdAt,
-        lastLoginAt: new Date().toISOString(),
-        newsletterSubs: [],
-        favorites: [],
-      };
-      persistSession(radarUser);
+      if (error) {
+        if (error.message.includes("already registered")) {
+          return { error: "Ya existe una cuenta con ese email." };
+        }
+        return { error: error.message };
+      }
+
       return {};
     },
     []
   );
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY);
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
   }, []);
 
   const sendPasswordReset = useCallback(
     async (email: string): Promise<{ error?: string }> => {
-      await new Promise((r) => setTimeout(r, 800));
-      const db = getDB();
-      const found = db.find((u) => u.email.toLowerCase() === email.toLowerCase());
-      if (!found) {
-        // Don't reveal whether email exists (security best practice)
-        return {};
-      }
-      // In production: send email via Resend/SendGrid/etc.
-      console.info(`[AUTH] Password reset requested for ${email}`);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) return { error: error.message };
       return {};
     },
     []
   );
 
   const updateUser = useCallback((partial: Partial<RadarUser>) => {
-    setUser((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev, ...partial };
-      localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
-      return updated;
-    });
+    setUser((prev) => (prev ? { ...prev, ...partial } : prev));
   }, []);
 
   const value: AuthContextValue = {
@@ -275,7 +167,7 @@ export function useAuth() {
   return ctx;
 }
 
-// ── Admin helpers (read-only stats from mock DB) ───────────────────────────
+// ── Admin helpers ──────────────────────────────────────────────────────────
 
 export interface AdminStats {
   totalUsers: number;
@@ -294,56 +186,50 @@ export interface StoredUserPublic {
   createdAt: string;
 }
 
-export function getAdminStats(): AdminStats {
-  const db = getDB();
-  const users: StoredUserPublic[] = db.map((u) => ({
-    id: u.id,
-    email: u.email,
-    name: u.name,
-    role: deriveRole(u.email, u.isAdminFlag),
-    createdAt: u.createdAt,
-  }));
+export async function getAdminStats(): Promise<AdminStats> {
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  const newsletterSubs: Record<string, number> = {};
-  for (const u of db) {
-    for (const sub of u.newsletterSubs) {
-      newsletterSubs[sub] = (newsletterSubs[sub] || 0) + 1;
-    }
-  }
+  const users: StoredUserPublic[] = (profiles || []).map((p) => ({
+    id: p.id,
+    email: p.email,
+    name: p.name,
+    role: p.role as UserRole,
+    createdAt: p.created_at,
+  }));
 
   return {
     totalUsers: users.length,
     internalUsers: users.filter((u) => u.role === "internal" || u.role === "admin").length,
     externalUsers: users.filter((u) => u.role === "external").length,
     adminUsers: users.filter((u) => u.role === "admin").length,
-    recentUsers: users.slice(-10).reverse(),
-    newsletterSubs,
+    recentUsers: users.slice(0, 20),
+    newsletterSubs: {},
   };
 }
 
-export function promoteToAdmin(userId: string): boolean {
-  const db = getDB();
-  const idx = db.findIndex((u) => u.id === userId);
-  if (idx === -1) return false;
-  db[idx].isAdminFlag = true;
-  saveDB(db);
-  return true;
+export async function promoteToAdmin(userId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role: "admin" })
+    .eq("id", userId);
+  return !error;
 }
 
-export function demoteFromAdmin(userId: string): boolean {
-  const db = getDB();
-  const idx = db.findIndex((u) => u.id === userId);
-  if (idx === -1) return false;
-  db[idx].isAdminFlag = false;
-  saveDB(db);
-  return true;
+export async function demoteFromAdmin(userId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role: "internal" })
+    .eq("id", userId);
+  return !error;
 }
 
-export function deleteUser(userId: string): boolean {
-  const db = getDB();
-  const idx = db.findIndex((u) => u.id === userId);
-  if (idx === -1) return false;
-  db.splice(idx, 1);
-  saveDB(db);
-  return true;
+export async function deleteUser(userId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("profiles")
+    .delete()
+    .eq("id", userId);
+  return !error;
 }
