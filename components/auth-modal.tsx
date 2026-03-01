@@ -385,12 +385,12 @@ export function AuthModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-[100] flex items-start justify-center bg-slate-950/80 backdrop-blur-sm px-4 overflow-y-auto"
       onClick={handleBackdrop}
     >
       <div
         ref={ref}
-        className="relative w-full max-w-sm bg-slate-800 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-sm bg-slate-800 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden my-20"
         style={{
           animation: "modalIn 0.2s cubic-bezier(.34,1.56,.64,1) both",
         }}
