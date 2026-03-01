@@ -13,8 +13,6 @@ import React, {
 } from "react";
 import { supabase } from "./supabase-client";
 
-// ── Types ──────────────────────────────────────────────────────────────────
-
 export type UserRole = "admin" | "internal" | "external";
 
 export interface RadarUser {
@@ -37,14 +35,14 @@ interface AuthContextValue {
   isInternal: boolean;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
 async function fetchProfile(userId: string): Promise<RadarUser | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
     .single();
+
+  console.log("fetchProfile:", { userId, data, error });
 
   if (error || !data) return null;
 
@@ -57,8 +55,6 @@ async function fetchProfile(userId: string): Promise<RadarUser | null> {
   };
 }
 
-// ── Context ────────────────────────────────────────────────────────────────
-
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -70,10 +66,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function initAuth() {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("getSession:", { session: session?.user?.email, error });
         if (!mounted) return;
         if (session?.user) {
           const profile = await fetchProfile(session.user.id);
+          console.log("profile loaded:", profile);
           if (mounted) setUser(profile);
         }
       } catch (e) {
@@ -87,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("onAuthStateChange:", event, session?.user?.email);
         if (!mounted) return;
         if (session?.user) {
           const profile = await fetchProfile(session.user.id);
@@ -103,15 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Safety net: if still loading after 5s, force stop
-    const timeout = setTimeout(() => {
-      if (mounted) setLoading(false);
-    }, 5000);
-
     return () => {
       mounted = false;
       subscription.unsubscribe();
-      clearTimeout(timeout);
     };
   }, []);
 
@@ -125,8 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error.message };
       }
       return {};
-    },
-    []
+    }, []
   );
 
   const register = useCallback(
@@ -134,23 +126,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (password.length < 8) {
         return { error: "La contraseña debe tener al menos 8 caracteres." };
       }
-
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { name } },
       });
-
       if (error) {
         if (error.message.includes("already registered")) {
           return { error: "Ya existe una cuenta con ese email." };
         }
         return { error: error.message };
       }
-
       return {};
-    },
-    []
+    }, []
   );
 
   const logout = useCallback(async () => {
@@ -165,8 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       if (error) return { error: error.message };
       return {};
-    },
-    []
+    }, []
   );
 
   const updateUser = useCallback((partial: Partial<RadarUser>) => {
@@ -194,8 +181,6 @@ export function useAuth() {
   return ctx;
 }
 
-// ── Admin helpers ──────────────────────────────────────────────────────────
-
 export interface AdminStats {
   totalUsers: number;
   internalUsers: number;
@@ -214,10 +199,12 @@ export interface StoredUserPublic {
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
-  const { data: profiles } = await supabase
+  const { data: profiles, error } = await supabase
     .from("profiles")
     .select("*")
     .order("created_at", { ascending: false });
+
+  console.log("getAdminStats:", { profiles, error });
 
   const users: StoredUserPublic[] = (profiles || []).map((p) => ({
     id: p.id,
