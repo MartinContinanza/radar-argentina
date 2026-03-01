@@ -1,10 +1,4 @@
 "use client";
-/**
- * components/AdminDashboard.tsx
- * Panel de administración completo.
- * Se importa dinámicamente (ssr:false) desde app/admin/page.tsx
- */
-
 import { useState, useEffect } from "react";
 import { Shell } from "./Shell";
 import {
@@ -17,8 +11,6 @@ import {
   StoredUserPublic,
   UserRole,
 } from "../lib/auth-context";
-
-// ── Redirect if not admin ──────────────────────────────────────────────────
 
 function AccessDenied() {
   return (
@@ -35,17 +27,13 @@ function AccessDenied() {
   );
 }
 
-// ── Role badge ─────────────────────────────────────────────────────────────
-
 const ROLE_STYLES: Record<UserRole, string> = {
   admin:    "bg-amber-900/50 text-amber-300 border-amber-700",
   internal: "bg-sky-900/50 text-sky-300 border-sky-700",
   external: "bg-slate-700 text-slate-300 border-slate-600",
 };
 const ROLE_LABELS: Record<UserRole, string> = {
-  admin: "Admin",
-  internal: "Interno",
-  external: "Externo",
+  admin: "Admin", internal: "Interno", external: "Externo",
 };
 
 function RoleBadge({ role }: { role: UserRole }) {
@@ -55,8 +43,6 @@ function RoleBadge({ role }: { role: UserRole }) {
     </span>
   );
 }
-
-// ── Stat Card ──────────────────────────────────────────────────────────────
 
 function StatCard({ value, label, color = "text-[#3EB2ED]", icon }: {
   value: number | string; label: string; color?: string; icon: string;
@@ -71,8 +57,6 @@ function StatCard({ value, label, color = "text-[#3EB2ED]", icon }: {
     </div>
   );
 }
-
-// ── Users Table ────────────────────────────────────────────────────────────
 
 function UsersTable({ users, currentUserId, onRefresh }: {
   users: StoredUserPublic[]; currentUserId: string; onRefresh: () => void;
@@ -91,24 +75,21 @@ function UsersTable({ users, currentUserId, onRefresh }: {
 
   async function handlePromote(userId: string) {
     setBusy(userId);
-    await new Promise((r) => setTimeout(r, 400));
-    promoteToAdmin(userId);
+    await promoteToAdmin(userId);
     onRefresh();
     setBusy(null);
   }
 
   async function handleDemote(userId: string) {
     setBusy(userId);
-    await new Promise((r) => setTimeout(r, 400));
-    demoteFromAdmin(userId);
+    await demoteFromAdmin(userId);
     onRefresh();
     setBusy(null);
   }
 
   async function handleDelete(userId: string) {
     setBusy(userId);
-    await new Promise((r) => setTimeout(r, 400));
-    deleteUser(userId);
+    await deleteUser(userId);
     setConfirmDelete(null);
     onRefresh();
     setBusy(null);
@@ -210,16 +191,12 @@ function UsersTable({ users, currentUserId, onRefresh }: {
   );
 }
 
-// ── Newsletter Panel ───────────────────────────────────────────────────────
-
 const NL_LABELS: Record<string, string> = {
   textiles: "Textiles", eudr: "EUDR", agro: "Agro", organico: "Mercado Orgánico",
 };
 
 function NewsletterPanel({ subs }: { subs: Record<string, number> }) {
-  const entries = Object.entries(NL_LABELS).map(([id, label]) => ({
-    id, label, count: subs[id] || 0,
-  }));
+  const entries = Object.entries(NL_LABELS).map(([id, label]) => ({ id, label, count: subs[id] || 0 }));
   const maxCount = Math.max(...entries.map((e) => e.count), 1);
   return (
     <div className="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5">
@@ -232,8 +209,7 @@ function NewsletterPanel({ subs }: { subs: Record<string, number> }) {
               <span className="text-sm font-bold text-[#3EB2ED]">{e.count}</span>
             </div>
             <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-              <div className="h-full bg-[#3EB2ED] rounded-full transition-all duration-500"
-                style={{ width: `${(e.count / maxCount) * 100}%` }} />
+              <div className="h-full bg-[#3EB2ED] rounded-full transition-all duration-500" style={{ width: `${(e.count / maxCount) * 100}%` }} />
             </div>
           </div>
         ))}
@@ -242,15 +218,11 @@ function NewsletterPanel({ subs }: { subs: Record<string, number> }) {
   );
 }
 
-// ── Activity Feed ──────────────────────────────────────────────────────────
-
 const MOCK_ACTIVITY = [
   { icon: "👤", text: "Nuevo usuario registrado: usuario@empresa.com", time: "hace 5 min" },
   { icon: "🔑", text: "Inicio de sesión: admin@controlunion.com", time: "hace 12 min" },
   { icon: "📬", text: "Nueva suscripción a newsletter EUDR", time: "hace 1h" },
   { icon: "💡", text: "Sugerencia recibida: agregar fuente INTA", time: "hace 3h" },
-  { icon: "👤", text: "Nuevo usuario registrado: productor@campo.com.ar", time: "hace 5h" },
-  { icon: "📬", text: "Nueva suscripción a newsletter Agro", time: "hace 8h" },
 ];
 
 function ActivityFeed() {
@@ -275,12 +247,9 @@ function ActivityFeed() {
   );
 }
 
-// ── Suggestions Panel ──────────────────────────────────────────────────────
-
 const MOCK_SUGGESTIONS = [
   { name: "Carlos M.", email: "carlos@soja.com.ar", msg: "Agregaría fuente del INTA para regulaciones fitosanitarias locales.", date: "2025-03-01" },
-  { name: "Ana R.", email: "", msg: "¿Podrían cubrir el mercado de carbono voluntario? Es clave para el agro.", date: "2025-02-28" },
-  { name: "—", email: "textilera@empresa.com", msg: "Falta cobertura de la norma OEKO-TEX para textiles.", date: "2025-02-26" },
+  { name: "Ana R.", email: "", msg: "¿Podrían cubrir el mercado de carbono voluntario?", date: "2025-02-28" },
 ];
 
 function SuggestionsPanel() {
@@ -306,45 +275,46 @@ function SuggestionsPanel() {
   );
 }
 
-// ── Main Dashboard ─────────────────────────────────────────────────────────
+// ── Main ───────────────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading } = useAuth();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "users" | "newsletter" | "suggestions">("overview");
+  const [authReady, setAuthReady] = useState(false);
 
-  function refreshStats() { getAdminStats().then(setStats); }
+  // Wait until loading is false before rendering anything
+  useEffect(() => {
+    if (!loading) setAuthReady(true);
+  }, [loading]);
 
-  useEffect(() => { if (isAdmin) refreshStats(); }, [isAdmin]);
+  useEffect(() => {
+    if (isAdmin) getAdminStats().then(setStats);
+  }, [isAdmin]);
 
-  if (loading) {
+  // Show spinner while auth is resolving
+  if (!authReady) {
     return (
       <Shell>
-        <div className="max-w-6xl mx-auto px-4 py-16 flex flex-col items-center justify-center gap-4">
+        <div className="max-w-6xl mx-auto px-4 py-16 flex items-center justify-center">
           <span className="w-6 h-6 rounded-full border-2 border-[#3EB2ED] border-t-transparent animate-spin" />
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 text-xs text-slate-400 font-mono space-y-1">
-            <p>loading: <span className="text-yellow-400">true</span></p>
-            <p>user: <span className="text-yellow-400">{user ? user.email : "null"}</span></p>
-            <p>isAdmin: <span className="text-yellow-400">{String(isAdmin)}</span></p>
-          </div>
         </div>
       </Shell>
     );
   }
 
-  if (!isAdmin) return <AccessDenied />;
+  if (!user || !isAdmin) return <AccessDenied />;
 
   const TABS = [
-    { id: "overview",     label: "Resumen",     icon: "📊" },
-    { id: "users",        label: "Usuarios",    icon: "👥" },
-    { id: "newsletter",   label: "Newsletter",  icon: "📬" },
-    { id: "suggestions",  label: "Sugerencias", icon: "💡" },
+    { id: "overview",    label: "Resumen",     icon: "📊" },
+    { id: "users",       label: "Usuarios",    icon: "👥" },
+    { id: "newsletter",  label: "Newsletter",  icon: "📬" },
+    { id: "suggestions", label: "Sugerencias", icon: "💡" },
   ] as const;
 
   return (
     <Shell>
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
         <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -363,7 +333,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex items-center gap-1 mb-6 border-b border-slate-700/60 overflow-x-auto">
           {TABS.map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -374,19 +343,13 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Overview */}
         {activeTab === "overview" && stats && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <StatCard value={stats.totalUsers}    label="Usuarios totales"   icon="👥" />
-              <StatCard value={stats.internalUsers} label="Usuarios internos"  icon="🏢" color="text-sky-400" />
-              <StatCard value={stats.externalUsers} label="Usuarios externos"  icon="🌐" color="text-emerald-400" />
-              <StatCard value={stats.adminUsers}    label="Administradores"    icon="⚙"  color="text-amber-400" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <StatCard value="22" label="Fuentes activas" icon="📡" color="text-[#3EB2ED]" />
-              <StatCard value="3"  label="Sugerencias nuevas" icon="💡" color="text-purple-400" />
-              <StatCard value={Object.values(stats.newsletterSubs).reduce((a, b) => a + b, 0)} label="Suscripciones newsletter" icon="📬" color="text-emerald-400" />
+              <StatCard value={stats.totalUsers}    label="Usuarios totales"  icon="👥" />
+              <StatCard value={stats.internalUsers} label="Internos"          icon="🏢" color="text-sky-400" />
+              <StatCard value={stats.externalUsers} label="Externos"          icon="🌐" color="text-emerald-400" />
+              <StatCard value={stats.adminUsers}    label="Administradores"   icon="⚙"  color="text-amber-400" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <ActivityFeed />
@@ -395,35 +358,19 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Users */}
         {activeTab === "users" && stats && (
-          <UsersTable users={stats.recentUsers} currentUserId={user!.id} onRefresh={refreshStats} />
+          <UsersTable users={stats.recentUsers} currentUserId={user!.id} onRefresh={() => getAdminStats().then(setStats)} />
         )}
 
-        {/* Newsletter */}
         {activeTab === "newsletter" && stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <NewsletterPanel subs={stats.newsletterSubs} />
-            <div className="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5">
-              <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                <span>📊</span> Métricas de apertura
-                <span className="text-[10px] text-slate-600 font-normal ml-1">(próximamente)</span>
-              </h3>
-              <div className="flex flex-col items-center justify-center py-10 gap-3 text-slate-600">
-                <span className="text-4xl">📈</span>
-                <p className="text-sm">Métricas de newsletters en desarrollo.</p>
-              </div>
-            </div>
-          </div>
+          <NewsletterPanel subs={stats.newsletterSubs} />
         )}
 
-        {/* Suggestions */}
         {activeTab === "suggestions" && <SuggestionsPanel />}
 
-        {!stats && activeTab !== "suggestions" && (
+        {!stats && (
           <div className="text-center py-16 text-slate-600">
-            <p className="text-4xl mb-4">◈</p>
-            <p className="text-sm">Cargando estadísticas…</p>
+            <span className="w-6 h-6 rounded-full border-2 border-[#3EB2ED] border-t-transparent animate-spin inline-block" />
           </div>
         )}
       </div>
