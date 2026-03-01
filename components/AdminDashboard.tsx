@@ -313,7 +313,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "users" | "newsletter" | "suggestions">("overview");
 
-  function refreshStats() { setStats(getAdminStats()); }
+  function refreshStats() { getAdminStats().then(setStats); }
 
   useEffect(() => { if (isAdmin) refreshStats(); }, [isAdmin]);
 
