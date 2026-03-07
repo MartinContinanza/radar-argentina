@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: "Fuentes",         href: "/fuentes" },
   { label: "Newsletter",      href: "/newsletter" },
   { label: "Auto-evaluación", href: "/autoevaluacion" },
+  { label: "Escalá", href: "/escala" },
   { label: "Acerca de",       href: "/acerca" },
 ];
 
