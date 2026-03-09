@@ -37,7 +37,7 @@ function RadarViz() {
     <div className="relative w-full h-full flex items-center justify-center">
       <svg
         viewBox="0 0 480 480"
-        className="w-full h-full max-w-[520px] max-h-[520px]"
+        className="w-full h-full max-w-[440px] max-h-[440px]"
         style={{ filter: "drop-shadow(0 0 32px rgba(62,178,237,0.15))" }}
       >
         <defs>
@@ -53,37 +53,21 @@ function RadarViz() {
             <circle cx="240" cy="240" r="220" />
           </clipPath>
         </defs>
-
-        {/* Background */}
         <circle cx="240" cy="240" r="240" fill="url(#bgGrad)" />
-
-        {/* Grid rings */}
         {[55, 110, 165, 220].map((r) => (
           <circle key={r} cx="240" cy="240" r={r} fill="none" stroke="rgba(62,178,237,0.10)" strokeWidth="1" />
         ))}
-
-        {/* Cross hairs */}
         <line x1="240" y1="20" x2="240" y2="460" stroke="rgba(62,178,237,0.08)" strokeWidth="1" />
         <line x1="20" y1="240" x2="460" y2="240" stroke="rgba(62,178,237,0.08)" strokeWidth="1" />
         <line x1="84" y1="84" x2="396" y2="396" stroke="rgba(62,178,237,0.05)" strokeWidth="1" />
         <line x1="396" y1="84" x2="84" y2="396" stroke="rgba(62,178,237,0.05)" strokeWidth="1" />
-
-        {/* Sweep */}
         <g clipPath="url(#radarClip)">
           <g style={{ transformOrigin: "240px 240px", animation: "radarSweep 4s linear infinite" }}>
-            <path
-              d="M240,240 L240,20 A220,220 0 0,1 460,240 Z"
-              fill="url(#sweepGrad)"
-              opacity="0.85"
-            />
+            <path d="M240,240 L240,20 A220,220 0 0,1 460,240 Z" fill="url(#sweepGrad)" opacity="0.85" />
           </g>
         </g>
-
-        {/* Center dot */}
         <circle cx="240" cy="240" r="5" fill="#3EB2ED" opacity="0.9" />
         <circle cx="240" cy="240" r="10" fill="none" stroke="#3EB2ED" strokeWidth="1.5" opacity="0.4" />
-
-        {/* Blips — static positions simulating detected signals */}
         {[
           { cx: 310, cy: 140, r: 4, delay: "0.3s" },
           { cx: 165, cy: 185, r: 3, delay: "1.1s" },
@@ -95,29 +79,15 @@ function RadarViz() {
         ].map((b, i) => (
           <g key={i}>
             <circle cx={b.cx} cy={b.cy} r={b.r} fill="#3EB2ED" opacity="0.85" />
-            <circle
-              cx={b.cx} cy={b.cy} r={b.r + 2}
-              fill="none" stroke="#3EB2ED" strokeWidth="1"
-              opacity="0.4"
-              style={{ animation: `blipPulse 2.4s ease-out ${b.delay} infinite` }}
-            />
+            <circle cx={b.cx} cy={b.cy} r={b.r + 2} fill="none" stroke="#3EB2ED" strokeWidth="1" opacity="0.4"
+              style={{ animation: `blipPulse 2.4s ease-out ${b.delay} infinite` }} />
           </g>
         ))}
-
-        {/* Outer ring */}
         <circle cx="240" cy="240" r="220" fill="none" stroke="rgba(62,178,237,0.20)" strokeWidth="1.5" />
       </svg>
-
       <style>{`
-        @keyframes radarSweep {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-        @keyframes blipPulse {
-          0%   { opacity: 0.6; r: 4px; }
-          60%  { opacity: 0; r: 14px; }
-          100% { opacity: 0; }
-        }
+        @keyframes radarSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes blipPulse { 0% { opacity: 0.6; } 60% { opacity: 0; } 100% { opacity: 0; } }
       `}</style>
     </div>
   );
@@ -132,18 +102,106 @@ function Tag({ label }: { label: string }) {
   );
 }
 
-// ── Feature card ───────────────────────────────────────────────────────────
-function FeatureCard({ icon, title, body }: { icon: string; title: string; body: string }) {
+// ── Benefit item ───────────────────────────────────────────────────────────
+function BenefitItem({ title, body }: { title: string; body: string }) {
   return (
-    <div className="group relative bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:border-[#3EB2ED]/40 hover:bg-slate-800/80 transition-all duration-300">
-      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{ background: "radial-gradient(ellipse at top left, rgba(62,178,237,0.05) 0%, transparent 70%)" }} />
-      <div className="relative">
-        <div className="w-11 h-11 rounded-xl bg-[#3EB2ED]/12 border border-[#3EB2ED]/20 flex items-center justify-center text-xl mb-4">
-          {icon}
-        </div>
-        <h3 className="font-bold text-white text-sm mb-2 tracking-tight">{title}</h3>
+    <div className="flex gap-3 group">
+      <div className="mt-0.5 w-5 h-5 rounded-full border border-[#3EB2ED]/40 bg-[#3EB2ED]/10 flex items-center justify-center shrink-0 group-hover:bg-[#3EB2ED]/20 transition-colors">
+        <svg className="w-2.5 h-2.5 text-[#3EB2ED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <div>
+        <p className="text-white font-semibold text-sm mb-0.5">{title}</p>
         <p className="text-slate-400 text-sm leading-relaxed">{body}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Laptop mockup with screenshot ─────────────────────────────────────────
+function LaptopMockup() {
+  return (
+    <div className="relative w-full flex items-center justify-center select-none">
+      {/* Glow behind laptop */}
+      <div className="absolute inset-0 rounded-full"
+        style={{ background: "radial-gradient(ellipse 70% 50% at 50% 60%, rgba(62,178,237,0.10) 0%, transparent 70%)" }} />
+
+      <div className="relative w-full max-w-[560px]">
+        {/* ── Screen body ── */}
+        <div
+          className="relative rounded-t-xl overflow-hidden border border-slate-600/60"
+          style={{
+            background: "linear-gradient(160deg, #1e2d42 0%, #0f1a2e 100%)",
+            boxShadow: "0 0 0 1px rgba(255,255,255,0.04) inset, 0 8px 40px rgba(0,0,0,0.5)",
+            paddingTop: "3px",
+          }}
+        >
+          {/* Browser chrome */}
+          <div className="flex items-center gap-1.5 px-3 py-2 bg-[#111d2e] border-b border-slate-700/50">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
+            <div className="flex-1 mx-3 bg-slate-800/80 rounded px-2 py-0.5 text-[10px] text-slate-500 text-center">
+              radar.controlunion.com
+            </div>
+          </div>
+
+          {/* Screenshot — use the uploaded image via public path */}
+          <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+            <img
+              src="/screenshot-radar.png"
+              alt="Radar — pantalla principal"
+              className="w-full h-full object-cover object-top"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = "none";
+                const parent = target.parentElement;
+                if (parent && !parent.querySelector(".fallback-ui")) {
+                  const div = document.createElement("div");
+                  div.className = "fallback-ui w-full h-full bg-slate-900 p-2";
+                  div.style.cssText = "display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px";
+                  const cards = [
+                    { tag: "EUDR", region: "Global", title: "EUDR: la UE exige trazabilidad a exportadores de soja" },
+                    { tag: "CBAM", region: "UE", title: "CBAM: el carbono en frontera y fertilizantes argentinos" },
+                    { tag: "CSRD", region: "UE", title: "CSRD: directiva europea alcanza a proveedores locales" },
+                    { tag: "orgánico", region: "AR", title: "Cancillería avanza en certificaciones orgánicas con UE" },
+                    { tag: "biofuels", region: "Global", title: "ISCC actualiza criterios para biocombustibles de soja" },
+                    { tag: "textiles", region: "USA", title: "Textiles sustentables: nuevas normas de la EPA" },
+                  ];
+                  div.innerHTML = cards.map(c => `
+                    <div style="background:#1e293b;border:1px solid #334155;border-radius:6px;overflow:hidden">
+                      <div style="height:38px;background:linear-gradient(135deg,#0c2236,#163352)"></div>
+                      <div style="padding:6px 7px">
+                        <div style="font-size:7px;color:#3EB2ED;font-weight:700;text-transform:uppercase;margin-bottom:3px">${c.region}</div>
+                        <div style="font-size:8px;color:#e2e8f0;font-weight:600;line-height:1.3;margin-bottom:4px">${c.title}</div>
+                        <span style="font-size:7px;color:#3EB2ED;background:rgba(62,178,237,0.1);border:1px solid rgba(62,178,237,0.2);border-radius:3px;padding:1px 4px">${c.tag}</span>
+                      </div>
+                    </div>
+                  `).join("");
+                  parent.appendChild(div);
+                }
+              }}
+            />
+          </div>
+        </div>
+
+        {/* ── Hinge ── */}
+        <div className="relative h-3 mx-[-2%]"
+          style={{ background: "linear-gradient(180deg, #1a2a3e 0%, #0d1520 100%)", borderLeft: "1px solid #334155", borderRight: "1px solid #334155" }}>
+          <div className="absolute inset-x-0 top-0 h-px bg-slate-600/40" />
+          <div className="absolute left-1/2 -translate-x-1/2 top-0.5 w-12 h-1.5 rounded-full bg-slate-700/60" />
+        </div>
+
+        {/* ── Base ── */}
+        <div className="relative h-4 rounded-b-xl mx-[-4%]"
+          style={{ background: "linear-gradient(180deg, #0d1520 0%, #081018 100%)", border: "1px solid #1e2d3d", borderTop: "none" }}>
+          <div className="absolute inset-x-0 bottom-0 h-px bg-slate-800/80" />
+        </div>
+
+        {/* Shadow under base */}
+        <div className="h-2 mx-[4%] rounded-b-full"
+          style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%)", filter: "blur(6px)" }} />
       </div>
     </div>
   );
@@ -198,20 +256,25 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* ── Hero ── */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
+      {/* ── Hero — fills exactly the remaining viewport after header ── */}
+      <section
+        className="relative flex items-center overflow-hidden"
+        style={{ minHeight: "calc(100vh - 57px)" }}
+      >
         {/* Background */}
         <div className="absolute inset-0"
           style={{ background: "radial-gradient(ellipse 80% 60% at 70% 50%, rgba(62,178,237,0.06) 0%, transparent 65%), radial-gradient(ellipse 50% 80% at 10% 80%, rgba(30,100,180,0.05) 0%, transparent 60%)" }} />
-        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(62,178,237,0.04) 1px, transparent 0)", backgroundSize: "40px 40px" }} />
+        <div className="absolute inset-0"
+          style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(62,178,237,0.04) 1px, transparent 0)", backgroundSize: "40px 40px" }} />
 
-        <div className="relative max-w-6xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-16 items-center py-20">
+        <div className="relative max-w-6xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-12 items-center py-10">
 
           {/* Left: copy */}
           <div
-            className="flex flex-col gap-8 transition-all duration-700"
+            className="flex flex-col gap-5 transition-all duration-700"
             style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(24px)" }}
           >
+            {/* Tags — close to the content, no extra top spacing */}
             <div className="flex flex-wrap gap-2">
               <Tag label="Sustentabilidad" />
               <Tag label="Certificaciones" />
@@ -220,12 +283,11 @@ export function LandingPage() {
 
             <div>
               <h1
-                className="text-5xl lg:text-6xl font-black leading-[1.05] tracking-tighter text-white mb-5"
+                className="text-4xl lg:text-[2.7rem] font-black leading-[1.08] tracking-tighter text-white mb-4"
                 style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
               >
-                Inteligencia regulatoria{" "}
+                Las noticias que{" "}
                 <span
-                  className="relative inline-block"
                   style={{
                     background: "linear-gradient(135deg, #3EB2ED 0%, #7dd3fc 50%, #3EB2ED 100%)",
                     WebkitBackgroundClip: "text",
@@ -233,18 +295,20 @@ export function LandingPage() {
                     backgroundClip: "text",
                   }}
                 >
-                  para el agro argentino
+                  mueven tu negocio
                 </span>
+                <br />
+                antes que las vea todo el mundo.
               </h1>
-              <p className="text-slate-300 text-lg leading-relaxed max-w-xl">
-                Radar monitorea en tiempo real las normativas de sustentabilidad, certificaciones y requisitos de comercio exterior que impactan en la producción argentina. Todo en un solo lugar.
+              <p className="text-slate-300 text-base leading-relaxed max-w-lg">
+                Radar monitorea en tiempo real normativas de sustentabilidad, certificaciones y comercio exterior con impacto en la producción argentina. Todo en un solo lugar, siempre actualizado.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div>
               <button
                 onClick={() => setAuthOpen(true)}
-                className="group relative inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl font-bold text-base text-white overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="group inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl font-bold text-sm text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, #1a8fc7 0%, #3EB2ED 50%, #1a8fc7 100%)",
                   backgroundSize: "200% 200%",
@@ -277,7 +341,7 @@ export function LandingPage() {
 
           {/* Right: radar viz */}
           <div
-            className="flex items-center justify-center w-full lg:h-[520px] h-[360px] transition-all duration-900"
+            className="flex items-center justify-center w-full lg:h-[440px] h-[280px] transition-all duration-900"
             style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(16px) scale(0.97)", transitionDelay: "150ms" }}
           >
             <RadarViz />
@@ -288,49 +352,55 @@ export function LandingPage() {
       {/* ── Separator ── */}
       <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent" />
 
-      {/* ── Features ── */}
+      {/* ── Benefits + Laptop ── */}
       <section className="max-w-6xl mx-auto px-6 py-24">
-        <div className="text-center mb-14">
-          <p className="text-[#3EB2ED] text-xs font-bold uppercase tracking-[0.2em] mb-3">Por qué Radar</p>
-          <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-white mb-4" style={{ fontFamily: "Georgia, serif" }}>
-            Todo lo que necesitás, en un solo lugar
-          </h2>
-          <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed">
-            Diseñado para equipos que exportan, certifican o asesoran en sustentabilidad y necesitan estar al día sin perder tiempo.
-          </p>
-        </div>
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <FeatureCard
-            icon="📡"
-            title="Monitoreo automático 24/7"
-            body="Más de 40 fuentes oficiales actualizadas en tiempo real: Comisión Europea, SENASA, USDA, FAO, normas ISO, sistemas de certificación y más."
-          />
-          <FeatureCard
-            icon="🏷️"
-            title="Clasificación inteligente"
-            body="Cada noticia es clasificada automáticamente por tema: EUDR, CBAM, CSRD, biocombustibles, orgánicos, textiles, deforestación y más."
-          />
-          <FeatureCard
-            icon="🌍"
-            title="Cobertura global con foco local"
-            body="Seguimiento de regulaciones de la UE, EEUU, Argentina y organismos globales, siempre con el impacto en el contexto argentino en mente."
-          />
-          <FeatureCard
-            icon="🔍"
-            title="Filtrado avanzado"
-            body="Filtrá por región, tema, fuente o período. Encontrá exactamente lo que necesitás sin tener que revisar decenas de sitios."
-          />
-          <FeatureCard
-            icon="🌐"
-            title="Traducción al instante"
-            body="Noticias originalmente en inglés o portugués traducidas al español argentino con un clic, sin salir de la plataforma."
-          />
-          <FeatureCard
-            icon="⭐"
-            title="Guardado de favoritos"
-            body="Marcá las noticias más relevantes para tu trabajo y accedé a ellas en cualquier momento desde tu panel personal."
-          />
+          {/* Left: benefits list */}
+          <div>
+            <p className="text-[#3EB2ED] text-xs font-bold uppercase tracking-[0.2em] mb-3">Por qué Radar</p>
+            <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-white mb-3" style={{ fontFamily: "Georgia, serif" }}>
+              Todo lo que necesitás,<br />en un solo lugar
+            </h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-md">
+              Diseñado para equipos que exportan, certifican o asesoran en sustentabilidad y necesitan estar al día sin perder tiempo.
+            </p>
+
+            <div className="flex flex-col gap-5">
+              <BenefitItem
+                title="Monitoreo automático 24/7"
+                body="Más de 40 fuentes oficiales actualizadas en tiempo real: Comisión Europea, SENASA, USDA, FAO, sistemas de certificación y más."
+              />
+              <BenefitItem
+                title="Clasificación inteligente por tema"
+                body="Cada noticia etiquetada automáticamente: EUDR, CBAM, CSRD, biocombustibles, orgánicos, textiles, deforestación y más."
+              />
+              <BenefitItem
+                title="Cobertura global con foco local"
+                body="UE, EEUU, Argentina y organismos globales, analizados siempre en clave de impacto para el sector productivo argentino."
+              />
+              <BenefitItem
+                title="Traducción al instante"
+                body="Noticias en inglés o portugués traducidas al español argentino con un clic, sin salir de la plataforma."
+              />
+              <BenefitItem
+                title="Auto-evaluación de cumplimiento"
+                body="Respondé un cuestionario guiado y obtené un diagnóstico de tu posición frente a las principales normativas vigentes."
+              />
+              <BenefitItem
+                title="Escala de madurez regulatoria"
+                body="Visualizá en qué nivel está tu organización y qué pasos concretos necesitás para avanzar hacia el cumplimiento pleno."
+              />
+            </div>
+          </div>
+
+          {/* Right: laptop mockup */}
+          <div
+            className="transition-all duration-700"
+            style={{ opacity: visible ? 1 : 0, transitionDelay: "200ms" }}
+          >
+            <LaptopMockup />
+          </div>
         </div>
       </section>
 
