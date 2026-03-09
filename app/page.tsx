@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Shell } from "../components/Shell";
+import { LandingPage } from "../components/LandingPage";
+import { useAuth } from "../lib/auth-context";
 import sourcesRaw from "../data/sources.json";
 import { Source, NewsItem, FetchResult } from "../lib/types";
 import { detectTags, ALL_TAGS } from "../lib/tagging";
@@ -186,6 +188,29 @@ function Card({ item, lang, onTranslate, translating, isFav, onToggleFav }: {
 }
 
 export default function Home() {
+  const { user, loading: authLoading } = useAuth();
+
+  // ── Auth gate ─────────────────────────────────────────────────────────────
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#060d1a] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="text-[#3EB2ED] text-3xl animate-pulse">◈</span>
+          <div className="w-40 h-1 rounded-full bg-slate-800 overflow-hidden">
+            <div className="h-full bg-[#3EB2ED]/60 rounded-full" style={{ width: "40%", animation: "loadBar 1.4s ease-in-out infinite" }} />
+          </div>
+        </div>
+        <style>{`@keyframes loadBar { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }`}</style>
+      </div>
+    );
+  }
+
+  if (!user) return <LandingPage />;
+
+  return <NewsPage />;
+}
+
+function NewsPage() {
   const [results, setResults] = useState<FetchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadedCount, setLoadedCount] = useState(0);
