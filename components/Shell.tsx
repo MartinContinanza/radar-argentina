@@ -11,7 +11,6 @@ const NAV_ITEMS = [
   { label: "Fuentes",         href: "/fuentes" },
   { label: "Newsletter",      href: "/newsletter" },
   { label: "Auto-evaluación", href: "/autoevaluacion" },
-  { label: "Escalá", href: "/escala" },
   { label: "Acerca de",       href: "/acerca" },
 ];
 
@@ -54,19 +53,8 @@ export function Shell({
             </div>
           </div>
 
-          {/* Right: loading status + suggestion icon + auth button */}
+          {/* Right: loading status + auth button */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Suggestion bulb */}
-            <Link
-              href="/acerca#sugerencias"
-              className="p-2 rounded-lg border border-slate-700 hover:border-[#3EB2ED] hover:text-[#3EB2ED] text-slate-400 transition-colors"
-              title="Sugerencias de mejora"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.344.346A5.001 5.001 0 0112 17.5a5 5 0 01-2.829-.964l-.344-.346z" />
-              </svg>
-            </Link>
-
             {/* Loading status passed from page (e.g. RSS progress) */}
             {loadingStatus}
 
@@ -78,7 +66,7 @@ export function Shell({
 
       {/* ── Nav ── */}
       <nav className="border-b border-slate-700/60 bg-slate-900/80">
-        <div className="max-w-6xl mx-auto px-4 flex items-center overflow-x-auto">
+        <div className="max-w-6xl mx-auto px-4 flex items-center overflow-x-hidden">
           {NAV_ITEMS.map((item) => {
             const active =
               path === item.href ||
