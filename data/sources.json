@@ -5,25 +5,25 @@
     "url": "https://www.wto.org/english/news_e/rss_e/rss_e.htm",
     "type": "rss",
     "region": "Global",
-    "tags": ["trade", "exports/imports"],
+    "tags": ["Comercio exterior", "Regulaciones comerciales"],
     "priority": 1
   },
   {
     "id": "ec-trade",
-    "name": "European Commission – Trade",
+    "name": "Comisión Europea – Comercio",
     "url": "https://ec.europa.eu/commission/presscorner/api/rss?services=TRADE&limit=20",
     "type": "rss",
     "region": "UE",
-    "tags": ["EUDR", "CBAM", "CSRD", "trade"],
+    "tags": ["EUDR", "CBAM", "CSRD", "Comercio exterior", "Regulaciones UE"],
     "priority": 1
   },
   {
-    "id": "ec-environment",
-    "name": "European Commission – Environment",
-    "url": "https://environment.ec.europa.eu/feeds/news_en.xml",
+    "id": "ec-clima",
+    "name": "Comisión Europea – Clima",
+    "url": "https://climate.ec.europa.eu/rss_en.xml",
     "type": "rss",
     "region": "UE",
-    "tags": ["sustainability", "deforestation", "EUDR"],
+    "tags": ["Huella de carbono", "Regulaciones UE", "CBAM", "Sostenibilidad"],
     "priority": 1
   },
   {
@@ -32,8 +32,8 @@
     "url": "https://fsc.org/en/rss.xml",
     "type": "rss",
     "region": "Global",
-    "tags": ["forestry", "certification", "deforestation", "EUDR"],
-    "priority": 2
+    "tags": ["Forestería", "Certificaciones", "Deforestación", "EUDR"],
+    "priority": 1
   },
   {
     "id": "iscc-news",
@@ -41,16 +41,16 @@
     "url": "https://www.iscc-system.org/feed/",
     "type": "rss",
     "region": "Global",
-    "tags": ["biofuels/ISCC", "certification", "sustainability"],
+    "tags": ["Biocombustibles", "Certificaciones", "Sostenibilidad"],
     "priority": 1
   },
   {
     "id": "senasa-ar",
     "name": "SENASA Argentina",
-    "url": "https://www.argentina.gob.ar/senasa/senasacomunica",
+    "url": "https://www.argentina.gob.ar/api/noticias.rss?jurisdiccion=senasa",
     "type": "rss",
     "region": "AR",
-    "tags": ["agriculture", "certification", "exports/imports"],
+    "tags": ["Agricultura", "Certificaciones", "Comercio exterior", "Argentina"],
     "priority": 1
   },
   {
@@ -59,44 +59,8 @@
     "url": "https://www.cancilleria.gob.ar/rss.xml",
     "type": "rss",
     "region": "AR",
-    "tags": ["trade", "exports/imports"],
+    "tags": ["Comercio exterior", "Argentina", "Regulaciones comerciales"],
     "priority": 1
-  },
-  {
-    "id": "ifoam",
-    "name": "IFOAM Organics",
-    "url": "https://www.ifoam.bio/feed",
-    "type": "rss",
-    "region": "Global",
-    "tags": ["organic", "agriculture", "certification"],
-    "priority": 2
-  },
-  {
-    "id": "unctad",
-    "name": "UNCTAD",
-    "url": "https://unctad.org/rss.xml",
-    "type": "rss",
-    "region": "Global",
-    "tags": ["trade", "sustainability", "agriculture"],
-    "priority": 3
-  },
-  {
-    "id": "usda-fas",
-    "name": "USDA / FAS",
-    "url": "https://www.fas.usda.gov/newsroom/search",
-    "type": "rss",
-    "region": "USA",
-    "tags": ["agriculture", "exports/imports"],
-    "priority": 2
-  },
-  {
-    "id": "fao-news",
-    "name": "FAO",
-    "url": "https://www.fao.org/feeds/agrovoc_latest_news.xml",
-    "type": "rss",
-    "region": "Global",
-    "tags": ["agriculture", "forestry", "sustainability", "due diligence"],
-    "priority": 2
   },
   {
     "id": "clarin-rural",
@@ -104,35 +68,17 @@
     "url": "https://www.clarin.com/rss/rural/",
     "type": "rss",
     "region": "AR",
-    "tags": ["agriculture", "exports/imports"],
+    "tags": ["Agricultura", "Comercio exterior", "Argentina"],
     "priority": 1
   },
   {
     "id": "lanacion-campo",
     "name": "La Nación – Campo",
-    "url": "https://www.lanacion.com.ar/economia/campo/",
+    "url": "https://www.lanacion.com.ar/arc/outboundfeeds/rss/categoria/campo/",
     "type": "rss",
     "region": "AR",
-    "tags": ["agriculture", "exports/imports", "certification"],
+    "tags": ["Agricultura", "Comercio exterior", "Certificaciones", "Argentina"],
     "priority": 1
-  },
-  {
-    "id": "lanacion-economia",
-    "name": "La Nación – Economía",
-    "url": "https://www.lanacion.com.ar/arc/outboundfeeds/rss/categoria/economia/",
-    "type": "rss",
-    "region": "AR",
-    "tags": ["trade", "exports/imports"],
-    "priority": 2
-  },
-  {
-    "id": "infobae-economia",
-    "name": "Infobae – Economía",
-    "url": "https://www.infobae.com/economia/",
-    "type": "rss",
-    "region": "AR",
-    "tags": ["trade", "exports/imports"],
-    "priority": 2
   },
   {
     "id": "bichos-campo",
@@ -140,25 +86,16 @@
     "url": "https://bichosdecampo.com/feed/",
     "type": "rss",
     "region": "AR",
-    "tags": ["agriculture", "organic", "certification", "exports/imports"],
+    "tags": ["Agricultura", "Orgánicos", "Certificaciones", "Comercio exterior", "Argentina"],
     "priority": 1
   },
   {
-    "id": "ecowatch",
-    "name": "EcoWatch",
-    "url": "https://www.ecowatch.com/rss/all",
+    "id": "infobae-economia",
+    "name": "Infobae – Economía",
+    "url": "https://www.infobae.com/feeds/rss/economia/",
     "type": "rss",
-    "region": "Global",
-    "tags": ["sustainability", "deforestation", "recycled"],
-    "priority": 2
-  },
-  {
-    "id": "sustainablefoodtrust",
-    "name": "Sustainable Food Trust",
-    "url": "https://sustainablefoodtrust.org/feed/",
-    "type": "rss",
-    "region": "Global",
-    "tags": ["organic", "agriculture", "sustainability", "certification"],
+    "region": "AR",
+    "tags": ["Comercio exterior", "Argentina"],
     "priority": 2
   },
   {
@@ -167,26 +104,8 @@
     "url": "https://textileexchange.org/feed/",
     "type": "rss",
     "region": "Global",
-    "tags": ["textiles", "recycled", "certification", "sustainability"],
+    "tags": ["Textiles", "Reciclado", "Certificaciones", "Sostenibilidad"],
     "priority": 1
-  },
-  {
-    "id": "euractiv-env",
-    "name": "Euractiv – Ambiente",
-    "url": "https://www.euractiv.com/sections/energy-environment/feed/",
-    "type": "rss",
-    "region": "UE",
-    "tags": ["EUDR", "CBAM", "CSRD", "sustainability", "deforestation"],
-    "priority": 1
-  },
-  {
-    "id": "epa-news",
-    "name": "EPA",
-    "url": "https://www.epa.gov/newsreleases/search?f%5B0%5D=news_releases_language%3Aen",
-    "type": "rss",
-    "region": "USA",
-    "tags": ["sustainability", "recycled", "textiles"],
-    "priority": 3
   },
   {
     "id": "roundtable-soy",
@@ -194,7 +113,124 @@
     "url": "https://www.responsiblesoy.org/feed/",
     "type": "rss",
     "region": "Global",
-    "tags": ["agriculture", "certification", "sustainability", "deforestation"],
+    "tags": ["Agricultura", "Certificaciones", "Sostenibilidad", "Deforestación"],
+    "priority": 1
+  },
+  {
+    "id": "sustainablefoodtrust",
+    "name": "Sustainable Food Trust",
+    "url": "https://sustainablefoodtrust.org/feed/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["Orgánicos", "Agricultura", "Sostenibilidad", "Certificaciones"],
+    "priority": 2
+  },
+  {
+    "id": "carbon-brief",
+    "name": "Carbon Brief",
+    "url": "https://www.carbonbrief.org/feed/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["Huella de carbono", "Sostenibilidad", "Regulaciones UE"],
+    "priority": 1
+  },
+  {
+    "id": "globalforestwatch",
+    "name": "Global Forest Watch – Blog",
+    "url": "https://www.globalforestwatch.org/blog/feed/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["Deforestación", "Forestería", "EUDR", "Sostenibilidad"],
+    "priority": 1
+  },
+  {
+    "id": "climateaction",
+    "name": "Climate Action",
+    "url": "https://www.climateaction.org/feed",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["Huella de carbono", "Sostenibilidad", "CBAM"],
+    "priority": 2
+  },
+  {
+    "id": "cifor-gcfr",
+    "name": "CIFOR – Bosques",
+    "url": "https://www.cifor.org/feed/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["Deforestación", "Forestería", "EUDR", "Sostenibilidad"],
+    "priority": 2
+  },
+  {
+    "id": "mongabay",
+    "name": "Mongabay",
+    "url": "https://news.mongabay.com/feed/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["Deforestación", "Forestería", "Sostenibilidad", "Biodiversidad"],
+    "priority": 1
+  },
+  {
+    "id": "edie",
+    "name": "Edie – Sustainability",
+    "url": "https://www.edie.net/rss/",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["Sostenibilidad", "Huella de carbono", "CSRD", "Regulaciones UE"],
+    "priority": 2
+  },
+  {
+    "id": "businessgreen",
+    "name": "BusinessGreen",
+    "url": "https://www.businessgreen.com/rss",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["Sostenibilidad", "Huella de carbono", "CBAM", "CSRD"],
+    "priority": 2
+  },
+  {
+    "id": "greenbiz",
+    "name": "GreenBiz",
+    "url": "https://www.greenbiz.com/feeds/news",
+    "type": "rss",
+    "region": "Global",
+    "tags": ["Sostenibilidad", "Certificaciones", "CSRD", "Huella de carbono"],
+    "priority": 2
+  },
+  {
+    "id": "ends-europe",
+    "name": "ENDS Europe",
+    "url": "https://www.endseurope.com/rss",
+    "type": "rss",
+    "region": "UE",
+    "tags": ["Regulaciones UE", "EUDR", "CBAM", "CSRD", "Sostenibilidad"],
+    "priority": 1
+  },
+  {
+    "id": "epa-news",
+    "name": "EPA",
+    "url": "https://www.epa.gov/rss/epa-news.xml",
+    "type": "rss",
+    "region": "USA",
+    "tags": ["Sostenibilidad", "Reciclado", "Textiles"],
+    "priority": 2
+  },
+  {
+    "id": "sec-esg",
+    "name": "SEC – ESG / Clima",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&type=&dateb=&owner=include&count=10&search_text=&action=getcompany&output=atom",
+    "type": "rss",
+    "region": "USA",
+    "tags": ["CSRD", "Sostenibilidad", "Regulaciones comerciales"],
+    "priority": 3
+  },
+  {
+    "id": "bioeconomia-ar",
+    "name": "Secretaría Bioeconomía AR",
+    "url": "https://www.argentina.gob.ar/api/noticias.rss?jurisdiccion=agricultura",
+    "type": "rss",
+    "region": "AR",
+    "tags": ["Agricultura", "Sostenibilidad", "Bioeconomía", "Argentina"],
     "priority": 1
   }
 ]
