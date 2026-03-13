@@ -11,27 +11,16 @@ import { detectTags, ALL_TAGS } from "../lib/tagging";
 const sources: Source[] = sourcesRaw as Source[];
 const PAGE_SIZE = 30;
 
-// ─── Default images by region/source ─────────────────────────────────────────
-const SOURCE_DEFAULTS: Record<string, string> = {
-  "European Commission – Trade": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1280px-Flag_of_Europe.svg.png",
-  "European Commission – Environment": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1280px-Flag_of_Europe.svg.png",
-  "Euractiv – Ambiente": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1280px-Flag_of_Europe.svg.png",
-};
-
 const REGION_DEFAULTS: Record<string, string> = {
   UE: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1280px-Flag_of_Europe.svg.png",
   AR: "/default-ar.jpg",
   USA: "/default-usa.jpg",
   Global: "/default-global.jpg",
 };
-
 function getDefaultImage(item: NewsItem): string {
-  if (SOURCE_DEFAULTS[item.sourceName]) return SOURCE_DEFAULTS[item.sourceName];
-  if (REGION_DEFAULTS[item.sourceRegion]) return REGION_DEFAULTS[item.sourceRegion];
-  return "/default-global.jpg";
+  return REGION_DEFAULTS[item.sourceRegion] ?? "/default-global.jpg";
 }
 
-// ─── Translation ──────────────────────────────────────────────────────────────
 async function translateText(text: string): Promise<string> {
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -48,65 +37,53 @@ async function translateText(text: string): Promise<string> {
   } catch { return text; }
 }
 
-// ─── HTML entity decode ───────────────────────────────────────────────────────
 function decodeEntities(str: string): string {
   if (!str) return str;
-  // Run two passes so that double-encoded entities like &amp;#8220; are handled
   function pass(s: string): string {
     return s
-      .replace(/&amp;/g, "&")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&quot;/g, '"')
-      .replace(/&#8220;/g, "\u201C")
-      .replace(/&#8221;/g, "\u201D")
-      .replace(/&#8216;/g, "\u2018")
-      .replace(/&#8217;/g, "\u2019")
-      .replace(/&#8211;/g, "\u2013")
-      .replace(/&#8212;/g, "\u2014")
+      .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"').replace(/&#8220;/g, "\u201C").replace(/&#8221;/g, "\u201D")
+      .replace(/&#8216;/g, "\u2018").replace(/&#8217;/g, "\u2019")
+      .replace(/&#8211;/g, "\u2013").replace(/&#8212;/g, "\u2014")
       .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
       .replace(/&[a-zA-Z]+;/g, "");
   }
   return pass(pass(str));
 }
 
-
-const DOLLAR_KW = ["dólar","dolar","dollar","tipo de cambio","cotización del","devaluación","brecha cambiaria","cepo cambiario","reservas bcra","banco central compró","banco central vendió","inflación mensual","indec inflación"];
-function isDollar(t: string, s: string) { const tx = (t + " " + s).toLowerCase(); return DOLLAR_KW.some(k => tx.includes(k)); }
-
-// ─── Demo items ───────────────────────────────────────────────────────────────
 const DEMO: NewsItem[] = [
-  { id:"d1", title:"EUDR: la UE exige trazabilidad a exportadores de soja, cuero y madera", link:"https://environment.ec.europa.eu", publishedAt: new Date(Date.now()-1*86400000).toISOString(), sourceName:"European Commission", sourceRegion:"UE", tags:["EUDR","deforestation","due diligence"], summary:"El Reglamento europeo sobre deforestación exige verificar que los productos no provienen de tierras deforestadas tras 2020.", image:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=80" },
-  { id:"d2", title:"SENASA habilita protocolo de exportación de arándanos a Europa", link:"https://www.argentina.gob.ar/senasa", publishedAt: new Date(Date.now()-2*86400000).toISOString(), sourceName:"SENASA Argentina", sourceRegion:"AR", tags:["agriculture","certification","exports/imports"], summary:"Nuevo protocolo fitosanitario para ingreso de frutas frescas argentinas al mercado europeo.", image:"https://images.unsplash.com/photo-1611735341450-74d61e660ad2?w=400&q=80" },
-  { id:"d3", title:"CBAM: el carbono en frontera y su impacto en fertilizantes argentinos", link:"https://taxation-customs.ec.europa.eu", publishedAt: new Date(Date.now()-3*86400000).toISOString(), sourceName:"European Commission", sourceRegion:"UE", tags:["CBAM","sustainability","exports/imports"], summary:"Los importadores europeos de fertilizantes deben reportar emisiones. El CBAM encarecerá productos sin huella de carbono certificada.", image:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
-  { id:"d4", title:"FSC actualiza cadena de custodia con requisitos digitales", link:"https://fsc.org", publishedAt: new Date(Date.now()-4*86400000).toISOString(), sourceName:"FSC Internacional", sourceRegion:"Global", tags:["forestry","certification","EUDR"], summary:"Forest Stewardship Council integró requisitos digitales de trazabilidad, alineándose con el EUDR.", image:"https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400&q=80" },
-  { id:"d5", title:"ISCC actualiza criterios de sostenibilidad para biocombustibles de soja", link:"https://www.iscc-system.org", publishedAt: new Date(Date.now()-5*86400000).toISOString(), sourceName:"ISCC System", sourceRegion:"Global", tags:["biofuels/ISCC","certification","sustainability"], summary:"El sistema ISCC revisó criterios para biodiesel de soja incorporando indicadores de biodiversidad.", image:"https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=80" },
-  { id:"d6", title:"Textiles sustentables: nuevas normas globales que impactan en el algodón argentino", link:"https://www.epa.gov", publishedAt: new Date(Date.now()-6*86400000).toISOString(), sourceName:"EPA", sourceRegion:"USA", tags:["textiles","recycled","sustainability"], summary:"La EPA creó un sello para textiles con mínimo 30% de contenido reciclado.", image:"https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400&q=80" },
-  { id:"d7", title:"CSRD: la directiva europea de sostenibilidad alcanza a proveedores argentinos", link:"https://finance.ec.europa.eu", publishedAt: new Date(Date.now()-7*86400000).toISOString(), sourceName:"European Commission", sourceRegion:"UE", tags:["CSRD","sustainability","due diligence"], summary:"La CSRD obliga a empresas europeas a reportar el impacto ambiental de toda su cadena de valor.", image:"https://images.unsplash.com/photo-1486325212027-8081e485255e?w=400&q=80" },
-  { id:"d8", title:"Biocombustibles: Argentina busca posicionarse en el mercado europeo de renovables", link:"https://www.fas.usda.gov", publishedAt: new Date(Date.now()-9*86400000).toISOString(), sourceName:"USDA / FAS", sourceRegion:"USA", tags:["biofuels/ISCC","agriculture","sustainability"], summary:"Argentina tiene potencial para ser proveedor clave de biocombustibles para Europa bajo estándar RED III.", image:"https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=80" },
-  { id:"d9", title:"FAO: deforestación en Sudamérica amenaza estándares de exportación", link:"https://www.fao.org", publishedAt: new Date(Date.now()-11*86400000).toISOString(), sourceName:"FAO", sourceRegion:"Global", tags:["deforestation","agriculture","forestry","EUDR"], summary:"La FAO advierte que el ritmo de deforestación en América del Sur compromete el cumplimiento del EUDR.", image:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&q=80" },
-  { id:"d10", title:"Cancillería avanza en reconocimiento mutuo de certificaciones orgánicas con la UE", link:"https://www.cancilleria.gob.ar", publishedAt: new Date(Date.now()-13*86400000).toISOString(), sourceName:"Cancillería Argentina", sourceRegion:"AR", tags:["organic","certification","exports/imports"], summary:"Acuerdo de equivalencia para que certificaciones orgánicas argentinas sean reconocidas en la UE.", image:"https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=400&q=80" },
-  { id:"d11", title:"Bichos de Campo: certificaciones orgánicas, el desafío del productor para exportar", link:"https://bichosdecampo.com", publishedAt: new Date(Date.now()-15*86400000).toISOString(), sourceName:"Bichos de Campo", sourceRegion:"AR", tags:["organic","agriculture","certification"], summary:"Los productores que buscan mercados premium en Europa enfrentan certificaciones que triplican el costo operativo.", image:"https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400&q=80" },
-  { id:"d12", title:"Textile Exchange: el algodón orgánico gana terreno en cadenas globales de moda", link:"https://textileexchange.org", publishedAt: new Date(Date.now()-16*86400000).toISOString(), sourceName:"Textile Exchange", sourceRegion:"Global", tags:["textiles","organic","certification","sustainability"], summary:"El informe anual de Textile Exchange muestra un crecimiento del 15% en adopción de estándares de algodón orgánico certificado.", image:"https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400&q=80" },
+  { id:"d1", title:"EUDR: la UE exige trazabilidad a exportadores de soja, cuero y madera", link:"https://environment.ec.europa.eu", publishedAt: new Date(Date.now()-1*86400000).toISOString(), sourceName:"Comisión Europea – Comercio", sourceRegion:"UE", tags:["EUDR","Deforestación","Regulaciones UE"], summary:"El Reglamento europeo sobre deforestación exige verificar que los productos no provienen de tierras deforestadas tras 2020." },
+  { id:"d2", title:"SENASA habilita protocolo de exportación de arándanos a Europa", link:"https://www.argentina.gob.ar/senasa", publishedAt: new Date(Date.now()-2*86400000).toISOString(), sourceName:"SENASA Argentina", sourceRegion:"AR", tags:["Agricultura","Certificaciones","Comercio exterior","Argentina"], summary:"Nuevo protocolo fitosanitario para ingreso de frutas frescas argentinas al mercado europeo." },
+  { id:"d3", title:"CBAM: el carbono en frontera y su impacto en fertilizantes argentinos", link:"https://taxation-customs.ec.europa.eu", publishedAt: new Date(Date.now()-3*86400000).toISOString(), sourceName:"Comisión Europea – Comercio", sourceRegion:"UE", tags:["CBAM","Huella de carbono","Comercio exterior"], summary:"Los importadores europeos deben reportar emisiones. El CBAM encarecerá productos sin huella de carbono certificada." },
+  { id:"d4", title:"FSC actualiza cadena de custodia con requisitos digitales", link:"https://fsc.org", publishedAt: new Date(Date.now()-4*86400000).toISOString(), sourceName:"FSC Internacional", sourceRegion:"Global", tags:["Forestería","Certificaciones","EUDR"], summary:"FSC integró requisitos digitales de trazabilidad, alineándose con el EUDR." },
+  { id:"d5", title:"ISCC actualiza criterios de sostenibilidad para biocombustibles de soja", link:"https://www.iscc-system.org", publishedAt: new Date(Date.now()-5*86400000).toISOString(), sourceName:"ISCC System", sourceRegion:"Global", tags:["Biocombustibles","Certificaciones","Sostenibilidad"], summary:"ISCC revisó criterios para biodiesel de soja incorporando indicadores de biodiversidad." },
+  { id:"d6", title:"Deforestación en el Chaco: alertas satelitales muestran pérdidas récord", link:"https://www.globalforestwatch.org", publishedAt: new Date(Date.now()-6*86400000).toISOString(), sourceName:"Global Forest Watch – Blog", sourceRegion:"Global", tags:["Deforestación","EUDR","Forestería","Sostenibilidad"], summary:"Datos satelitales revelan que el Gran Chaco perdió más de 300.000 hectáreas en el último año." },
+  { id:"d7", title:"CSRD: empresas europeas deberán auditar sus cadenas de valor en 2025", link:"https://www.edie.net", publishedAt: new Date(Date.now()-7*86400000).toISOString(), sourceName:"Edie – Sustainability", sourceRegion:"Global", tags:["CSRD","Regulaciones UE","Sostenibilidad"], summary:"La directiva CSRD impone nuevos estándares de reporte que alcanzan a proveedores argentinos de grandes firmas europeas." },
+  { id:"d8", title:"Huella de carbono: Argentina avanza en metodologías de medición para el agro", link:"https://www.argentina.gob.ar", publishedAt: new Date(Date.now()-8*86400000).toISOString(), sourceName:"Secretaría Bioeconomía AR", sourceRegion:"AR", tags:["Huella de carbono","Agricultura","Sostenibilidad","Argentina"], summary:"El gobierno lanzó guías metodológicas para que productores rurales calculen y certifiquen su huella de carbono." },
+  { id:"d9", title:"Textile Exchange: el algodón orgánico gana terreno en cadenas globales", link:"https://textileexchange.org", publishedAt: new Date(Date.now()-9*86400000).toISOString(), sourceName:"Textile Exchange", sourceRegion:"Global", tags:["Textiles","Orgánicos","Certificaciones","Sostenibilidad"], summary:"Crecimiento del 15% en adopción de estándares de algodón orgánico certificado." },
+  { id:"d10", title:"Carbon Brief: las emisiones globales siguen creciendo pese a compromisos climáticos", link:"https://www.carbonbrief.org", publishedAt: new Date(Date.now()-10*86400000).toISOString(), sourceName:"Carbon Brief", sourceRegion:"Global", tags:["Huella de carbono","Sostenibilidad"], summary:"Las emisiones en 2024 superaron los niveles pre-pandemia, poniendo en riesgo los objetivos del Acuerdo de París." },
+  { id:"d11", title:"Cancillería avanza en reconocimiento mutuo de certificaciones orgánicas con la UE", link:"https://www.cancilleria.gob.ar", publishedAt: new Date(Date.now()-11*86400000).toISOString(), sourceName:"Cancillería Argentina", sourceRegion:"AR", tags:["Orgánicos","Certificaciones","Comercio exterior","Argentina"], summary:"Acuerdo de equivalencia para que certificaciones orgánicas argentinas sean reconocidas en la UE." },
+  { id:"d12", title:"Mongabay: incendios en la Amazonía amenazan compromisos EUDR de grandes traders", link:"https://news.mongabay.com", publishedAt: new Date(Date.now()-12*86400000).toISOString(), sourceName:"Mongabay", sourceRegion:"Global", tags:["Deforestación","EUDR","Forestería","Biodiversidad"], summary:"Los principales traders de soja y carne enfrentan reclamos de clientes europeos ante el avance del fuego en biomas protegidos." },
 ];
 
-// ─── Fetch ────────────────────────────────────────────────────────────────────
 async function fetchSource(source: Source): Promise<FetchResult> {
   try {
     const res = await fetch(`/api/rss?url=${encodeURIComponent(source.url)}`);
     const json = await res.json();
     if (json.error && !json.items?.length) return { sourceId: source.id, sourceName: source.name, items: [], error: json.error };
     const now = new Date().toISOString();
-    const items: NewsItem[] = (json.items ?? [])
-      .filter((r: { title: string; summary: string }) => !isDollar(r.title, r.summary))
-      .map((r: { title: string; link: string; pubDate: string | null; summary: string; image?: string }, i: number) => ({
+    const items: NewsItem[] = (json.items ?? []).map((r: { title: string; link: string; pubDate: string | null; summary: string; image?: string }, i: number) => {
+      const title = decodeEntities(r.title);
+      const summary = decodeEntities(r.summary);
+      return {
         id: `${source.id}-${i}-${r.link}`,
-        title: decodeEntities(r.title), link: r.link,
+        title, link: r.link,
         publishedAt: r.pubDate ? new Date(r.pubDate).toISOString() : now,
         sourceName: source.name, sourceRegion: source.region,
-        tags: Array.from(new Set([...source.tags, ...detectTags(`${r.title} ${r.summary}`)])),
-        summary: decodeEntities(r.summary), image: r.image,
-      }));
+        tags: Array.from(new Set([...source.tags, ...detectTags(`${title} ${summary}`)])),
+        summary, image: r.image,
+      };
+    });
     return { sourceId: source.id, sourceName: source.name, items };
   } catch (e) {
     return { sourceId: source.id, sourceName: source.name, items: [], error: String(e) };
@@ -124,85 +101,81 @@ function fmtDate(iso: string) {
   catch { return iso; }
 }
 
-const REGIONS = Array.from(new Set(sources.map(s => s.region))).sort();
-const RC: Record<string, string> = {
-  AR: "bg-sky-900/60 text-sky-300 border-sky-700",
-  UE: "bg-blue-900/60 text-blue-300 border-blue-700",
-  USA: "bg-red-900/60 text-red-300 border-red-700",
-  Global: "bg-slate-700 text-slate-300 border-slate-600",
+const TAG_COLORS: Record<string, string> = {
+  "EUDR": "bg-emerald-900/60 text-emerald-300 border-emerald-700",
+  "CBAM": "bg-blue-900/60 text-blue-300 border-blue-700",
+  "CSRD": "bg-violet-900/60 text-violet-300 border-violet-700",
+  "Regulaciones UE": "bg-blue-900/40 text-blue-300 border-blue-800",
+  "Sostenibilidad": "bg-teal-900/60 text-teal-300 border-teal-700",
+  "Huella de carbono": "bg-orange-900/60 text-orange-300 border-orange-800",
+  "Deforestación": "bg-red-900/60 text-red-300 border-red-800",
+  "Biodiversidad": "bg-lime-900/60 text-lime-300 border-lime-700",
+  "Bioeconomía": "bg-green-900/60 text-green-300 border-green-700",
+  "Certificaciones": "bg-sky-900/60 text-sky-300 border-sky-700",
+  "Orgánicos": "bg-green-900/50 text-green-300 border-green-800",
+  "Forestería": "bg-emerald-900/40 text-emerald-300 border-emerald-800",
+  "Agricultura": "bg-yellow-900/60 text-yellow-300 border-yellow-800",
+  "Textiles": "bg-pink-900/60 text-pink-300 border-pink-800",
+  "Biocombustibles": "bg-amber-900/60 text-amber-300 border-amber-800",
+  "Reciclado": "bg-cyan-900/60 text-cyan-300 border-cyan-800",
+  "Comercio exterior": "bg-indigo-900/60 text-indigo-300 border-indigo-800",
+  "Regulaciones comerciales": "bg-slate-700 text-slate-300 border-slate-600",
+  "Argentina": "bg-sky-900/80 text-sky-200 border-sky-700",
 };
+function tagClass(tag: string) { return TAG_COLORS[tag] ?? "bg-slate-700 text-slate-300 border-slate-600"; }
+
+const TAG_GROUPS = [
+  { label: "Regulaciones",    tags: ["EUDR", "CBAM", "CSRD", "Regulaciones UE", "Regulaciones comerciales"] },
+  { label: "Ambiente",        tags: ["Sostenibilidad", "Huella de carbono", "Deforestación", "Biodiversidad", "Bioeconomía"] },
+  { label: "Certificaciones", tags: ["Certificaciones", "Orgánicos", "Forestería"] },
+  { label: "Sectores",        tags: ["Agricultura", "Textiles", "Biocombustibles", "Reciclado"] },
+  { label: "Comercio",        tags: ["Comercio exterior", "Argentina"] },
+];
+
+function TagPill({ tag }: { tag: string }) {
+  return <span className={`inline-flex items-center font-semibold border rounded-md text-[10px] px-1.5 py-0.5 ${tagClass(tag)}`}>{tag}</span>;
+}
 
 function TagBtn({ tag, active, onClick }: { tag: string; active?: boolean; onClick?: () => void }) {
   return (
-    <button onClick={onClick} className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all border ${active ? "bg-[#3EB2ED] text-white border-[#3EB2ED]" : "bg-transparent text-slate-400 border-slate-700 hover:border-[#3EB2ED] hover:text-[#3EB2ED]"}`}>
+    <button onClick={onClick} className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all border ${active ? tagClass(tag) + " ring-1 ring-white/20" : "bg-transparent text-slate-500 border-slate-700 hover:border-slate-500 hover:text-slate-300"}`}>
       {tag}
     </button>
   );
 }
 
-function Card({ item, lang, onTranslate, translating, isFav, onToggleFav }: {
-  item: NewsItem; lang: "es" | "en"; onTranslate: (id: string) => void;
-  translating: boolean; isFav: boolean; onToggleFav: (id: string) => void;
+function Card({ item, onTranslate, translating, isFav, onToggleFav }: {
+  item: NewsItem; onTranslate: (id: string) => void; translating: boolean; isFav: boolean; onToggleFav: (id: string) => void;
 }) {
-  const rc = RC[item.sourceRegion] ?? RC.Global;
-  const title = lang === "es" && item.translatedTitle ? item.translatedTitle : item.title;
-  const summary = lang === "es" && item.translatedSummary ? item.translatedSummary : item.summary;
-
-  // Always show an image: use item's image, or fall back to a default
+  const title = item.translatedTitle ?? item.title;
+  const summary = item.translatedSummary ?? item.summary;
   const displayImage = item.image || getDefaultImage(item);
-  const isDefaultImg = !item.image;
-
   return (
     <article className="group bg-slate-800/60 rounded-xl border border-slate-700/60 overflow-hidden hover:border-[#3EB2ED]/50 hover:bg-slate-800 transition-all duration-200 flex flex-col">
       <div className="relative w-full h-40 overflow-hidden bg-slate-700/80 shrink-0">
-        <img
-          src={displayImage}
-          alt=""
-          className={`w-full h-full object-cover transition-all duration-500 ${
-            isDefaultImg
-              ? "opacity-30 group-hover:opacity-40 scale-105"
-              : "opacity-80 group-hover:opacity-100 group-hover:scale-105"
-          }`}
-          onError={e => {
-            // If even the default fails, show a plain slate background
-            const img = e.target as HTMLImageElement;
-            img.style.display = "none";
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-800/80 to-transparent" />
-        <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded border ${rc}`}>{item.sourceRegion}</span>
+        <img src={displayImage} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-500" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-800/90 to-transparent" />
+        <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded border bg-slate-900/80 text-slate-300 border-slate-600">{item.sourceRegion}</span>
       </div>
       <div className="p-4 flex flex-col gap-2 flex-1">
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs font-semibold text-[#3EB2ED] uppercase tracking-wider truncate">{item.sourceName}</span>
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="text-xs text-slate-500">{fmtDate(item.publishedAt)}</span>
-            {/* Favorite star */}
-            <button onClick={() => onToggleFav(item.id)}
-              className={`ml-1 transition-colors ${isFav ? "text-yellow-400" : "text-slate-600 hover:text-yellow-400"}`}
-              title={isFav ? "Quitar de favoritas" : "Marcar como favorita"}>
-              {isFav ? "★" : "☆"}
-            </button>
+            <button onClick={() => onToggleFav(item.id)} className={`ml-1 transition-colors ${isFav ? "text-yellow-400" : "text-slate-600 hover:text-yellow-400"}`}>{isFav ? "★" : "☆"}</button>
           </div>
         </div>
-        <a href={item.link} target="_blank" rel="noopener noreferrer"
-          className="block text-[15px] font-bold text-slate-100 leading-snug group-hover:text-[#3EB2ED] transition-colors line-clamp-2">
+        <a href={item.link} target="_blank" rel="noopener noreferrer" className="block text-[15px] font-bold text-slate-100 leading-snug group-hover:text-[#3EB2ED] transition-colors line-clamp-2">
           {title}<span className="inline-block ml-1 opacity-0 group-hover:opacity-60 transition-opacity text-xs">↗</span>
         </a>
         {summary && <p className="text-sm text-slate-400 leading-relaxed line-clamp-3">{summary}</p>}
-        <div className="flex items-center justify-between mt-auto pt-1 gap-2">
-          <div className="flex flex-wrap gap-1.5">
-            {item.tags.slice(0, 4).map(tag => (
-              <span key={tag} className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-400 border border-slate-600">{tag}</span>
-            ))}
-          </div>
-          {lang === "es" && !item.translatedTitle && (
-            <button onClick={() => onTranslate(item.id)} disabled={translating}
-              className="text-[10px] text-slate-500 hover:text-[#3EB2ED] transition-colors shrink-0 disabled:opacity-40">
+        <div className="flex items-end justify-between mt-auto pt-2 gap-2">
+          <div className="flex flex-wrap gap-1">{item.tags.slice(0, 4).map(tag => <TagPill key={tag} tag={tag} />)}</div>
+          {!item.translatedTitle ? (
+            <button onClick={() => onTranslate(item.id)} disabled={translating} className="text-[10px] text-slate-500 hover:text-[#3EB2ED] transition-colors shrink-0 disabled:opacity-40">
               {translating ? "traduciendo…" : "traducir →"}
             </button>
-          )}
-          {item.translatedTitle && lang === "es" && <span className="text-[10px] text-emerald-500 shrink-0">✓ ES</span>}
+          ) : <span className="text-[10px] text-emerald-500 shrink-0">✓ ES</span>}
         </div>
       </div>
     </article>
@@ -211,24 +184,18 @@ function Card({ item, lang, onTranslate, translating, isFav, onToggleFav }: {
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
-
-  // ── Auth gate ─────────────────────────────────────────────────────────────
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-[#060d1a] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <span className="text-[#3EB2ED] text-3xl animate-pulse">◈</span>
-          <div className="w-40 h-1 rounded-full bg-slate-800 overflow-hidden">
-            <div className="h-full bg-[#3EB2ED]/60 rounded-full" style={{ width: "40%", animation: "loadBar 1.4s ease-in-out infinite" }} />
-          </div>
+  if (authLoading) return (
+    <div className="min-h-screen bg-[#060d1a] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <span className="text-[#3EB2ED] text-3xl animate-pulse">◈</span>
+        <div className="w-40 h-1 rounded-full bg-slate-800 overflow-hidden">
+          <div className="h-full bg-[#3EB2ED]/60 rounded-full" style={{ width: "40%", animation: "loadBar 1.4s ease-in-out infinite" }} />
         </div>
-        <style>{`@keyframes loadBar { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }`}</style>
       </div>
-    );
-  }
-
+      <style>{`@keyframes loadBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}`}</style>
+    </div>
+  );
   if (!user) return <LandingPage />;
-
   return <NewsPage />;
 }
 
@@ -237,25 +204,30 @@ function NewsPage() {
   const [loading, setLoading] = useState(true);
   const [loadedCount, setLoadedCount] = useState(0);
   const [realCount, setRealCount] = useState(0);
-  const [filtersOpen, setFiltersOpen] = useState(true);
-  const [lang, setLang] = useState<"es" | "en">("es");
   const [translatingIds, setTranslatingIds] = useState<Set<string>>(new Set());
   const [translations, setTranslations] = useState<Record<string, { title: string; summary: string }>>({});
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [showFavs, setShowFavs] = useState(false);
   const [search, setSearch] = useState("");
   const [selTags, setSelTags] = useState<string[]>([]);
-  const [selRegion, setSelRegion] = useState("");
+  const [selSources, setSelSources] = useState<string[]>([]);
   const [last30, setLast30] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filterTab, setFilterTab] = useState<"temas" | "fuentes">("temas");
   const [page, setPage] = useState(1);
 
   const onResult = useCallback((r: FetchResult) => {
     setResults(p => [...p, r]);
     setLoadedCount(c => c + 1);
-    setRealCount(c => c + r.items.length);
+    if (!r.error) setRealCount(c => c + r.items.length);
   }, []);
 
-  useEffect(() => { fetchAll(sources, 3, onResult).then(() => setLoading(false)); }, [onResult]);
+  useEffect(() => { fetchAll(sources, 4, onResult).then(() => setLoading(false)); }, [onResult]);
+
+  const availableSources = useMemo(() => {
+    const names = results.filter(r => !r.error && r.items.length > 0).map(r => r.sourceName);
+    return Array.from(new Set(names)).sort();
+  }, [results]);
 
   const allItems = useMemo(() => {
     const real: NewsItem[] = []; const seen = new Set<string>();
@@ -263,27 +235,26 @@ function NewsPage() {
       const k = it.link || it.id;
       if (!seen.has(k)) { seen.add(k); real.push(it); }
     }
-    return (real.length > 0 ? real : DEMO)
-      .filter(it => !isDollar(it.title, it.summary))
+    const base = real.length > 0 ? real : DEMO;
+    return base
       .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
       .map(it => ({ ...it, translatedTitle: translations[it.id]?.title, translatedSummary: translations[it.id]?.summary }));
   }, [results, translations]);
 
   const filtered = useMemo(() => {
     const cutoff = last30 ? new Date(Date.now() - 30 * 86400000).toISOString() : null;
-    const sq = search.toLowerCase();
+    const sq = search.toLowerCase().trim();
     let base = showFavs ? allItems.filter(it => favorites.has(it.id)) : allItems;
     return base.filter(it => {
-      if (sq && !it.title.toLowerCase().includes(sq) && !it.summary.toLowerCase().includes(sq)) return false;
+      if (sq && !it.title.toLowerCase().includes(sq) && !(it.summary ?? "").toLowerCase().includes(sq)) return false;
       if (selTags.length > 0 && !selTags.some(t => it.tags.includes(t))) return false;
-      if (selRegion && it.sourceRegion !== selRegion) return false;
+      if (selSources.length > 0 && !selSources.includes(it.sourceName)) return false;
       if (cutoff && it.publishedAt < cutoff) return false;
       return true;
     });
-  }, [allItems, search, selTags, selRegion, last30, showFavs, favorites]);
+  }, [allItems, search, selTags, selSources, last30, showFavs, favorites]);
 
-  // Reset page when filters change
-  useEffect(() => { setPage(1); }, [search, selTags, selRegion, last30, showFavs]);
+  useEffect(() => { setPage(1); }, [search, selTags, selSources, last30, showFavs]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -300,13 +271,13 @@ function NewsPage() {
     }
   }
 
-  function toggleFav(id: string) {
-    setFavorites(p => { const s = new Set(p); s.has(id) ? s.delete(id) : s.add(id); return s; });
-  }
+  function toggleFav(id: string) { setFavorites(p => { const s = new Set(p); s.has(id) ? s.delete(id) : s.add(id); return s; }); }
+  function toggleTag(tag: string) { setSelTags(p => p.includes(tag) ? p.filter(t => t !== tag) : [...p, tag]); }
+  function toggleSource(name: string) { setSelSources(p => p.includes(name) ? p.filter(s => s !== name) : [...p, name]); }
 
-  const isDemo = realCount === 0;
+  const activeFilters = selTags.length + selSources.length + (search ? 1 : 0) + (last30 ? 1 : 0);
+  const isDemo = realCount === 0 && !loading;
   const failed = results.filter(r => r.error);
-  const activeFilters = selTags.length + (selRegion ? 1 : 0) + (search ? 1 : 0) + (last30 ? 1 : 0);
 
   const loadingStatus = (
     <div className="flex items-center gap-3 shrink-0">
@@ -317,7 +288,7 @@ function NewsPage() {
           </div>
         : <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="hidden sm:block">{sources.length} fuentes</span>
+            <span className="hidden sm:block">{sources.length - failed.length} fuentes activas</span>
           </div>
       }
     </div>
@@ -326,106 +297,137 @@ function NewsPage() {
   return (
     <Shell loadingStatus={loadingStatus}>
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {isDemo && !loading && (
+
+        {isDemo && (
           <div className="mb-4 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-sm text-amber-400 flex gap-2">
             <span>⚠</span><span>Mostrando noticias de ejemplo. Las fuentes RSS no respondieron aún.</span>
           </div>
         )}
 
-        {/* Favorites toggle */}
         {favorites.size > 0 && (
           <button onClick={() => setShowFavs(v => !v)}
             className={`mb-4 flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${showFavs ? "bg-yellow-400/10 border-yellow-400/50 text-yellow-400" : "border-slate-700 text-slate-400 hover:border-yellow-400/50 hover:text-yellow-400"}`}>
-            <span>★</span>
-            {showFavs ? `Ver todas las noticias` : `Ver favoritas (${favorites.size})`}
+            <span>★</span>{showFavs ? "Ver todas las noticias" : `Ver favoritas (${favorites.size})`}
           </button>
         )}
 
-        {/* Filters */}
+        {/* Filters panel */}
         <div className="mb-6 bg-slate-800/50 border border-slate-700/60 rounded-xl overflow-hidden">
           <button onClick={() => setFiltersOpen(v => !v)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-700/30 transition-colors">
             <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M6 10h12M9 16h6" /></svg>
               <span className="text-sm font-semibold text-slate-300">Filtros</span>
               {activeFilters > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-[#3EB2ED] text-white font-bold">{activeFilters}</span>}
             </div>
             <div className="flex items-center gap-3 text-slate-500">
-              <span className="text-xs hidden sm:block">{filtered.length} resultado{filtered.length !== 1 ? "s" : ""}{isDemo ? " (ejemplo)" : ` de ${allItems.length}`}</span>
+              <span className="text-xs hidden sm:block">{filtered.length} noticia{filtered.length !== 1 ? "s" : ""}{isDemo ? " (ejemplo)" : ` de ${allItems.length}`}</span>
               <span className={`transition-transform duration-200 ${filtersOpen ? "rotate-180" : ""}`}>▾</span>
             </div>
           </button>
-          <div className={`transition-all duration-300 overflow-hidden ${filtersOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
+
+          <div className={`transition-all duration-300 overflow-hidden ${filtersOpen ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"}`}>
             <div className="px-4 pb-4 border-t border-slate-700/40 pt-4 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
+
+              {/* Search + last30 */}
+              <div className="flex gap-3">
+                <div className="flex-1">
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Buscar</label>
-                  <input type="text" placeholder="EUDR, textiles, biocombustibles…" value={search} onChange={e => { setSearch(e.target.value); }}
-                    className="w-full bg-slate-900/80 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-[#3EB2ED] transition" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Región</label>
-                  <select value={selRegion} onChange={e => setSelRegion(e.target.value)}
-                    className="w-full bg-slate-900/80 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#3EB2ED] transition">
-                    <option value="">Todas</option>
-                    {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Temas</label>
-                <div className="flex flex-wrap gap-2">
-                  {ALL_TAGS.map(tag => <TagBtn key={tag} tag={tag} active={selTags.includes(tag)} onClick={() => setSelTags(p => p.includes(tag) ? p.filter(t => t !== tag) : [...p, tag])} />)}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <button onClick={() => setLast30(v => !v)} className={`flex items-center gap-2 text-sm transition-colors ${last30 ? "text-[#3EB2ED]" : "text-slate-500 hover:text-slate-300"}`}>
-                  <div className={`relative w-9 h-5 rounded-full transition-colors ${last30 ? "bg-[#3EB2ED]" : "bg-slate-700"}`}>
-                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${last30 ? "translate-x-4" : ""}`} />
+                  <div className="relative">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <input type="text" placeholder="EUDR, carbono, soja, certificación…" value={search} onChange={e => setSearch(e.target.value)}
+                      className="w-full bg-slate-900/80 border border-slate-600 rounded-lg pl-8 pr-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-[#3EB2ED] transition" />
                   </div>
-                  Últimos 30 días
-                </button>
-                {activeFilters > 0 && (
-                  <button onClick={() => { setSearch(""); setSelTags([]); setSelRegion(""); setLast30(false); }} className="text-xs text-slate-500 hover:text-red-400 transition-colors">✕ Limpiar filtros</button>
+                </div>
+                <div className="flex flex-col justify-end">
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Período</label>
+                  <button onClick={() => setLast30(v => !v)} className={`flex items-center gap-2 text-xs h-[38px] px-3 rounded-lg border transition-colors ${last30 ? "bg-[#3EB2ED]/10 border-[#3EB2ED]/50 text-[#3EB2ED]" : "border-slate-600 text-slate-500 hover:border-slate-500"}`}>
+                    <div className={`relative w-8 h-4 rounded-full transition-colors ${last30 ? "bg-[#3EB2ED]" : "bg-slate-700"}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${last30 ? "translate-x-4" : ""}`} />
+                    </div>
+                    <span className="whitespace-nowrap">Últ. 30 días</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <div>
+                <div className="flex gap-1 mb-3 border-b border-slate-700/60">
+                  {(["temas", "fuentes"] as const).map(tab => (
+                    <button key={tab} onClick={() => setFilterTab(tab)}
+                      className={`px-3 py-1.5 text-xs font-semibold capitalize transition-colors border-b-2 -mb-px ${filterTab === tab ? "text-[#3EB2ED] border-[#3EB2ED]" : "text-slate-500 border-transparent hover:text-slate-300"}`}>
+                      {tab === "temas" ? `Temas${selTags.length ? ` (${selTags.length})` : ""}` : `Fuentes${selSources.length ? ` (${selSources.length})` : ""}`}
+                    </button>
+                  ))}
+                </div>
+
+                {filterTab === "temas" && (
+                  <div className="space-y-3">
+                    {TAG_GROUPS.map(group => (
+                      <div key={group.label}>
+                        <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-1.5">{group.label}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {group.tags.map(tag => <TagBtn key={tag} tag={tag} active={selTags.includes(tag)} onClick={() => toggleTag(tag)} />)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {filterTab === "fuentes" && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {(availableSources.length > 0 ? availableSources : sources.map(s => s.name)).map(name => (
+                      <button key={name} onClick={() => toggleSource(name)}
+                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all border ${selSources.includes(name) ? "bg-[#3EB2ED]/15 text-[#3EB2ED] border-[#3EB2ED]/50" : "bg-transparent text-slate-500 border-slate-700 hover:border-slate-500 hover:text-slate-300"}`}>
+                        {name}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
+
+              {activeFilters > 0 && (
+                <div className="flex justify-end">
+                  <button onClick={() => { setSearch(""); setSelTags([]); setSelSources([]); setLast30(false); }}
+                    className="text-xs text-slate-500 hover:text-red-400 transition-colors flex items-center gap-1">
+                    ✕ Limpiar todos los filtros
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Active filter chips */}
+        {(selTags.length > 0 || selSources.length > 0) && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {selTags.map(tag => (
+              <button key={tag} onClick={() => toggleTag(tag)} className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border font-semibold ${tagClass(tag)}`}>
+                {tag} <span className="opacity-60">✕</span>
+              </button>
+            ))}
+            {selSources.map(src => (
+              <button key={src} onClick={() => toggleSource(src)} className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border font-medium bg-slate-700 text-slate-300 border-slate-600 hover:border-red-400 hover:text-red-400 transition-colors">
+                {src} <span className="opacity-60">✕</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Cards */}
         {pageItems.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              {pageItems.map((item) => (
-                <Card key={item.id} item={item} lang={lang}
-                  onTranslate={handleTranslate} translating={translatingIds.has(item.id)}
-                  isFav={favorites.has(item.id)} onToggleFav={toggleFav} />
+              {pageItems.map(item => (
+                <Card key={item.id} item={item} onTranslate={handleTranslate} translating={translatingIds.has(item.id)} isFav={favorites.has(item.id)} onToggleFav={toggleFav} />
               ))}
             </div>
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2">
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                  className="px-3 py-1.5 rounded-lg border border-slate-700 text-sm text-slate-400 hover:border-[#3EB2ED] hover:text-[#3EB2ED] disabled:opacity-30 transition-colors">
-                  ← Anterior
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
-                  .reduce<(number | "...")[]>((acc, p, i, arr) => {
-                    if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...");
-                    acc.push(p); return acc;
-                  }, [])
-                  .map((p, i) => p === "..." ? (
-                    <span key={`ellipsis-${i}`} className="px-2 text-slate-600">…</span>
-                  ) : (
-                    <button key={p} onClick={() => setPage(p as number)}
-                      className={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${page === p ? "bg-[#3EB2ED] border-[#3EB2ED] text-white" : "border-slate-700 text-slate-400 hover:border-[#3EB2ED] hover:text-[#3EB2ED]"}`}>
-                      {p}
-                    </button>
-                  ))}
-                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-slate-700 text-sm text-slate-400 hover:border-[#3EB2ED] hover:text-[#3EB2ED] disabled:opacity-30 transition-colors">
-                  Siguiente →
-                </button>
+                <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1} className="px-3 py-1.5 rounded-lg border border-slate-700 text-sm text-slate-400 hover:border-[#3EB2ED] hover:text-[#3EB2ED] disabled:opacity-30 transition-colors">← Anterior</button>
+                {Array.from({length:totalPages},(_,i)=>i+1).filter(p=>p===1||p===totalPages||Math.abs(p-page)<=2).reduce<(number|"...")[]>((acc,p,i,arr)=>{if(i>0&&p-(arr[i-1] as number)>1)acc.push("...");acc.push(p);return acc;},[]).map((p,i)=>p==="..."?<span key={`e-${i}`} className="px-2 text-slate-600">…</span>:(
+                  <button key={p} onClick={()=>setPage(p as number)} className={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${page===p?"bg-[#3EB2ED] border-[#3EB2ED] text-white":"border-slate-700 text-slate-400 hover:border-[#3EB2ED] hover:text-[#3EB2ED]"}`}>{p}</button>
+                ))}
+                <button onClick={() => setPage(p => Math.min(totalPages, p+1))} disabled={page===totalPages} className="px-3 py-1.5 rounded-lg border border-slate-700 text-sm text-slate-400 hover:border-[#3EB2ED] hover:text-[#3EB2ED] disabled:opacity-30 transition-colors">Siguiente →</button>
               </div>
             )}
           </>
@@ -437,14 +439,15 @@ function NewsPage() {
           </div>
         )}
 
-        {/* Failed sources */}
         {failed.length > 0 && !loading && (
-          <div className="mt-12 border-t border-slate-800 pt-6">
-            <p className="text-xs text-slate-600 font-semibold uppercase tracking-widest mb-2">Fuentes que no respondieron</p>
-            <div className="flex flex-wrap gap-2">
+          <details className="mt-12 border-t border-slate-800 pt-6">
+            <summary className="text-xs text-slate-600 font-semibold uppercase tracking-widest cursor-pointer hover:text-slate-400 transition-colors">
+              {failed.length} fuente{failed.length !== 1 ? "s" : ""} sin respuesta ▸
+            </summary>
+            <div className="flex flex-wrap gap-2 mt-3">
               {failed.map(s => <span key={s.sourceId} className="text-xs px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-slate-500">{s.sourceName}</span>)}
             </div>
-          </div>
+          </details>
         )}
       </div>
     </Shell>
