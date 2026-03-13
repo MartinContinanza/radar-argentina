@@ -235,24 +235,13 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-[#060d1a] text-slate-100 overflow-x-hidden">
 
-      {/* ── Header ── */}
-      <header className="border-b border-slate-800/80 bg-[#060d1a]/95 sticky top-0 z-50 backdrop-blur-md">
+      {/* ── Header oculto — solo para SEO/accesibilidad ── */}
+      <header className="hidden" aria-hidden="true">
         <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Image src="/cu-logo.png" alt="Control Union" width={128} height={36}
               className="object-contain brightness-0 invert opacity-80" />
-            <div className="w-px h-7 bg-slate-700/80" />
-            <div className="flex items-center gap-2">
-              <span className="text-[#3EB2ED] text-lg">◈</span>
-              <span className="font-bold text-lg tracking-tight text-white" style={{ fontFamily: "Georgia, serif" }}>Radar</span>
-            </div>
           </div>
-          <button
-            onClick={() => setAuthOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#3EB2ED]/10 border border-[#3EB2ED]/30 hover:bg-[#3EB2ED]/20 hover:border-[#3EB2ED]/60 text-[#3EB2ED] text-sm font-semibold transition-all duration-200"
-          >
-            Iniciar sesión
-          </button>
         </div>
       </header>
 
@@ -274,6 +263,14 @@ export function LandingPage() {
             className="flex flex-col gap-5 transition-all duration-700"
             style={{ opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(24px)" }}
           >
+            {/* Control Union branding */}
+            <div className="flex items-center gap-3">
+              <Image src="/cu-logo.png" alt="Control Union" width={140} height={38}
+                className="object-contain brightness-0 invert opacity-90" />
+              <div className="w-px h-6 bg-slate-700" />
+              <span className="text-slate-400 text-xs font-medium">Una herramienta de</span>
+            </div>
+
             {/* Tags — close to the content, no extra top spacing */}
             <div className="flex flex-wrap gap-2">
               <Tag label="Sustentabilidad" />
@@ -369,27 +366,19 @@ export function LandingPage() {
             <div className="flex flex-col gap-5">
               <BenefitItem
                 title="Monitoreo automático 24/7"
-                body="Más de 40 fuentes oficiales actualizadas en tiempo real: Comisión Europea, SENASA, USDA, FAO, sistemas de certificación y más."
+                body="Más de 40 fuentes oficiales: Comisión Europea, SENASA, USDA, FAO y más."
               />
               <BenefitItem
                 title="Clasificación inteligente por tema"
-                body="Cada noticia etiquetada automáticamente: EUDR, CBAM, CSRD, biocombustibles, orgánicos, textiles, deforestación y más."
+                body="Cada noticia etiquetada: EUDR, CBAM, CSRD, biocombustibles, orgánicos y más."
               />
               <BenefitItem
                 title="Cobertura global con foco local"
-                body="UE, EEUU, Argentina y organismos globales, analizados siempre en clave de impacto para el sector productivo argentino."
+                body="UE, EEUU, Argentina y organismos globales, en clave de impacto para el agro argentino."
               />
               <BenefitItem
                 title="Traducción al instante"
-                body="Noticias en inglés o portugués traducidas al español argentino con un clic, sin salir de la plataforma."
-              />
-              <BenefitItem
-                title="Auto-evaluación de cumplimiento"
-                body="Respondé un cuestionario guiado y obtené un diagnóstico de tu posición frente a las principales normativas vigentes."
-              />
-              <BenefitItem
-                title="Escala de madurez regulatoria"
-                body="Visualizá en qué nivel está tu organización y qué pasos concretos necesitás para avanzar hacia el cumplimiento pleno."
+                body="Noticias en inglés o portugués traducidas al español argentino con un clic."
               />
             </div>
           </div>
@@ -400,6 +389,39 @@ export function LandingPage() {
             style={{ opacity: visible ? 1 : 0, transitionDelay: "200ms" }}
           >
             <LaptopMockup />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Divider ── */}
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent" />
+
+      {/* ── Herramientas extra: Autoevaluación + Escalá ── */}
+      <section className="max-w-6xl mx-auto px-6 py-20">
+        <p className="text-center text-[#3EB2ED] text-xs font-bold uppercase tracking-[0.2em] mb-3">Más que noticias</p>
+        <h2 className="text-center text-2xl lg:text-3xl font-black tracking-tighter text-white mb-10" style={{ fontFamily: "Georgia, serif" }}>
+          Conocé tu posición regulatoria
+        </h2>
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Autoevaluación */}
+          <div className="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-7 hover:border-[#3EB2ED]/40 transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-[#3EB2ED]/10 border border-[#3EB2ED]/25 flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-[#3EB2ED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-white font-bold text-lg mb-2">Auto-evaluación de cumplimiento</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">Respondé un cuestionario guiado y obtené un diagnóstico de tu posición frente a las principales normativas vigentes.</p>
+          </div>
+          {/* Escalá */}
+          <div className="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-7 hover:border-[#3EB2ED]/40 transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-[#3EB2ED]/10 border border-[#3EB2ED]/25 flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-[#3EB2ED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <h3 className="text-white font-bold text-lg mb-2">Escala de madurez regulatoria</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">Visualizá en qué nivel está tu organización y qué pasos concretos necesitás para avanzar hacia el cumplimiento pleno.</p>
           </div>
         </div>
       </section>
