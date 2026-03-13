@@ -48,7 +48,29 @@ async function translateText(text: string): Promise<string> {
   } catch { return text; }
 }
 
-// ─── Dollar filter ────────────────────────────────────────────────────────────
+// ─── HTML entity decode ───────────────────────────────────────────────────────
+function decodeEntities(str: string): string {
+  if (!str) return str;
+  // Run two passes so that double-encoded entities like &amp;#8220; are handled
+  function pass(s: string): string {
+    return s
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#8220;/g, "\u201C")
+      .replace(/&#8221;/g, "\u201D")
+      .replace(/&#8216;/g, "\u2018")
+      .replace(/&#8217;/g, "\u2019")
+      .replace(/&#8211;/g, "\u2013")
+      .replace(/&#8212;/g, "\u2014")
+      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+      .replace(/&[a-zA-Z]+;/g, "");
+  }
+  return pass(pass(str));
+}
+
+
 const DOLLAR_KW = ["dólar","dolar","dollar","tipo de cambio","cotización del","devaluación","brecha cambiaria","cepo cambiario","reservas bcra","banco central compró","banco central vendió","inflación mensual","indec inflación"];
 function isDollar(t: string, s: string) { const tx = (t + " " + s).toLowerCase(); return DOLLAR_KW.some(k => tx.includes(k)); }
 
@@ -79,11 +101,11 @@ async function fetchSource(source: Source): Promise<FetchResult> {
       .filter((r: { title: string; summary: string }) => !isDollar(r.title, r.summary))
       .map((r: { title: string; link: string; pubDate: string | null; summary: string; image?: string }, i: number) => ({
         id: `${source.id}-${i}-${r.link}`,
-        title: r.title, link: r.link,
+        title: decodeEntities(r.title), link: r.link,
         publishedAt: r.pubDate ? new Date(r.pubDate).toISOString() : now,
         sourceName: source.name, sourceRegion: source.region,
         tags: Array.from(new Set([...source.tags, ...detectTags(`${r.title} ${r.summary}`)])),
-        summary: r.summary, image: r.image,
+        summary: decodeEntities(r.summary), image: r.image,
       }));
     return { sourceId: source.id, sourceName: source.name, items };
   } catch (e) {
@@ -288,12 +310,6 @@ function NewsPage() {
 
   const loadingStatus = (
     <div className="flex items-center gap-3 shrink-0">
-      <button onClick={() => setLang(l => l === "es" ? "en" : "es")}
-        className="flex items-center gap-1.5 text-xs font-bold border border-slate-700 rounded-lg px-3 py-1.5 hover:border-[#3EB2ED] transition-colors">
-        <span className={lang === "es" ? "text-[#3EB2ED]" : "text-slate-500"}>ES</span>
-        <span className="text-slate-600">/</span>
-        <span className={lang === "en" ? "text-[#3EB2ED]" : "text-slate-500"}>EN</span>
-      </button>
       {loading
         ? <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="w-3 h-3 rounded-full border-2 border-[#3EB2ED] border-t-transparent animate-spin" />
