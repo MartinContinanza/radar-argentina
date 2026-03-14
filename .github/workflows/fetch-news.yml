@@ -1,0 +1,19 @@
+name: Fetch News
+
+on:
+  schedule:
+    # Corre cada 2 horas
+    - cron: "0 */2 * * *"
+  # Permite correrlo manualmente desde GitHub Actions
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger fetch endpoint
+        run: |
+          curl -s -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/fetch" \
+            | jq .
