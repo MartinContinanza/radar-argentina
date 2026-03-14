@@ -82,6 +82,17 @@ function extractItems(xmlText: string): ParsedItem[] {
   return items;
 }
 
+// ─── Hash simple del link para generar IDs únicos ────────────────────────────
+function hashLink(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convertir a 32bit integer
+  }
+  return Math.abs(hash).toString(36).padStart(8, "0");
+}
+
 // ─── Fetch de una fuente ──────────────────────────────────────────────────────
 async function fetchSource(source: Source): Promise<{ sourceId: string; items: ParsedItem[]; error?: string }> {
   try {
@@ -155,9 +166,9 @@ export async function GET(req: NextRequest) {
         const summary = item.summary;
         const autoTags = detectTags(`${title} ${summary}`);
         const allTags = Array.from(new Set([...source.tags, ...autoTags]));
-        // 32 chars de base64url para minimizar colisiones de ID
+        // Hash del link completo + idx para garantizar unicidad absoluta
         const raw = item.link || `${source.id}-${idx}`;
-        const id = `${source.id}-${Buffer.from(raw).toString("base64url").slice(0, 32)}`;
+        const id = `${source.id}-${hashLink(raw)}-${idx}`;
         return {
           id,
           title,
