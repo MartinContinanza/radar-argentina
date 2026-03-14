@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "../../../lib/supabase-server";
-import sourcesRaw from "../../../data/sources.json";
-import { detectTags } from "../../../lib/tagging";
-import { Source } from "../../../lib/types";
+import { supabaseServer } from "../../../../lib/supabase-server";
+import sourcesRaw from "../../../../data/sources.json";
+import { detectTags } from "../../../../lib/tagging";
+import { Source } from "../../../../lib/types";
 
 const sources: Source[] = sourcesRaw as Source[];
 
