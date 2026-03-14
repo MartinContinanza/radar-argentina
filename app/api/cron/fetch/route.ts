@@ -9,7 +9,7 @@ const sources: Source[] = sourcesRaw as Source[];
 // ─── Seguridad: el cron solo responde si viene con el token correcto ──────────
 const CRON_SECRET = process.env.CRON_SECRET;
 
-// ─── Parser RSS (mismo que el route.ts original) ─────────────────────────────
+// ─── Parser RSS ───────────────────────────────────────────────────────────────
 interface ParsedItem {
   title: string;
   link: string;
@@ -100,6 +100,24 @@ async function fetchSource(source: Source): Promise<{ sourceId: string; items: P
   }
 }
 
+// ─── Upsert en batches para evitar límites de payload ────────────────────────
+const BATCH_SIZE = 100;
+
+async function upsertInBatches(rows: object[]): Promise<{ inserted: number; error: string | null }> {
+  let inserted = 0;
+  for (let b = 0; b < rows.length; b += BATCH_SIZE) {
+    const batch = rows.slice(b, b + BATCH_SIZE);
+    const { error } = await supabaseServer
+      .from("news_items")
+      .upsert(batch, { onConflict: "id", ignoreDuplicates: true });
+    if (error) {
+      return { inserted, error: error.message };
+    }
+    inserted += batch.length;
+  }
+  return { inserted, error: null };
+}
+
 // ─── Handler principal ────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   // Verificar token de seguridad
@@ -152,17 +170,13 @@ export async function GET(req: NextRequest) {
         };
       });
 
-      // Upsert: inserta nuevas, ignora duplicadas
-      const { error: dbError } = await supabaseServer
-  .from("news_items")
-  .upsert(rows, { onConflict: "id", ignoreDuplicates: true });
+      // Upsert en batches de 100 para evitar límites de payload
+      const { inserted, error: upsertError } = await upsertInBatches(rows);
 
-const count = rows.length;
-
-      if (dbError) {
-        results.push({ source: source.name, new: 0, error: dbError.message });
+      if (upsertError) {
+        results.push({ source: source.name, new: inserted, error: upsertError });
       } else {
-        results.push({ source: source.name, new: count ?? 0 });
+        results.push({ source: source.name, new: inserted });
       }
     }
   });
