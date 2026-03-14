@@ -155,7 +155,9 @@ export async function GET(req: NextRequest) {
         const summary = item.summary;
         const autoTags = detectTags(`${title} ${summary}`);
         const allTags = Array.from(new Set([...source.tags, ...autoTags]));
-        const id = `${source.id}-${Buffer.from(item.link || `${source.id}-${idx}`).toString("base64").slice(0, 16)}`;
+        // 32 chars de base64url para minimizar colisiones de ID
+        const raw = item.link || `${source.id}-${idx}`;
+        const id = `${source.id}-${Buffer.from(raw).toString("base64url").slice(0, 32)}`;
         return {
           id,
           title,
