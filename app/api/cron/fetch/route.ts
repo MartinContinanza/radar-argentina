@@ -153,10 +153,11 @@ export async function GET(req: NextRequest) {
       });
 
       // Upsert: inserta nuevas, ignora duplicadas
-      const { error: dbError, count } = await supabaseServer
-        .from("news_items")
-        .upsert(rows, { onConflict: "id", ignoreDuplicates: true })
-        .select("id", { count: "exact", head: true });
+      const { error: dbError } = await supabaseServer
+  .from("news_items")
+  .upsert(rows, { onConflict: "id", ignoreDuplicates: true });
+
+const count = rows.length;
 
       if (dbError) {
         results.push({ source: source.name, new: 0, error: dbError.message });
