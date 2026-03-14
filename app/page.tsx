@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Shell } from "../components/Shell";
 import { LandingPage } from "../components/LandingPage";
 import { useAuth } from "../lib/auth-context";
 import sourcesRaw from "../data/sources.json";
-import { Source, NewsItem, FetchResult } from "../lib/types";
-import { detectTags, ALL_TAGS } from "../lib/tagging";
+import { Source, NewsItem } from "../lib/types";
 
 const sources: Source[] = sourcesRaw as Source[];
 const PAGE_SIZE = 30;
@@ -37,20 +36,6 @@ async function translateText(text: string): Promise<string> {
   } catch { return text; }
 }
 
-function decodeEntities(str: string): string {
-  if (!str) return str;
-  function pass(s: string): string {
-    return s
-      .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-      .replace(/&quot;/g, '"').replace(/&#8220;/g, "\u201C").replace(/&#8221;/g, "\u201D")
-      .replace(/&#8216;/g, "\u2018").replace(/&#8217;/g, "\u2019")
-      .replace(/&#8211;/g, "\u2013").replace(/&#8212;/g, "\u2014")
-      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-      .replace(/&[a-zA-Z]+;/g, "");
-  }
-  return pass(pass(str));
-}
-
 const DEMO: NewsItem[] = [
   { id:"d1", title:"EUDR: la UE exige trazabilidad a exportadores de soja, cuero y madera", link:"https://environment.ec.europa.eu", publishedAt: new Date(Date.now()-1*86400000).toISOString(), sourceName:"Comisión Europea – Comercio", sourceRegion:"UE", tags:["EUDR","Deforestación","Regulaciones UE"], summary:"El Reglamento europeo sobre deforestación exige verificar que los productos no provienen de tierras deforestadas tras 2020." },
   { id:"d2", title:"SENASA habilita protocolo de exportación de arándanos a Europa", link:"https://www.argentina.gob.ar/senasa", publishedAt: new Date(Date.now()-2*86400000).toISOString(), sourceName:"SENASA Argentina", sourceRegion:"AR", tags:["Agricultura","Certificaciones","Comercio exterior","Argentina"], summary:"Nuevo protocolo fitosanitario para ingreso de frutas frescas argentinas al mercado europeo." },
@@ -65,36 +50,6 @@ const DEMO: NewsItem[] = [
   { id:"d11", title:"Cancillería avanza en reconocimiento mutuo de certificaciones orgánicas con la UE", link:"https://www.cancilleria.gob.ar", publishedAt: new Date(Date.now()-11*86400000).toISOString(), sourceName:"Cancillería Argentina", sourceRegion:"AR", tags:["Orgánicos","Certificaciones","Comercio exterior","Argentina"], summary:"Acuerdo de equivalencia para que certificaciones orgánicas argentinas sean reconocidas en la UE." },
   { id:"d12", title:"Mongabay: incendios en la Amazonía amenazan compromisos EUDR de grandes traders", link:"https://news.mongabay.com", publishedAt: new Date(Date.now()-12*86400000).toISOString(), sourceName:"Mongabay", sourceRegion:"Global", tags:["Deforestación","EUDR","Forestería","Biodiversidad"], summary:"Los principales traders de soja y carne enfrentan reclamos de clientes europeos ante el avance del fuego en biomas protegidos." },
 ];
-
-async function fetchSource(source: Source): Promise<FetchResult> {
-  try {
-    const res = await fetch(`/api/rss?url=${encodeURIComponent(source.url)}`);
-    const json = await res.json();
-    if (json.error && !json.items?.length) return { sourceId: source.id, sourceName: source.name, items: [], error: json.error };
-    const now = new Date().toISOString();
-    const items: NewsItem[] = (json.items ?? []).map((r: { title: string; link: string; pubDate: string | null; summary: string; image?: string }, i: number) => {
-      const title = decodeEntities(r.title);
-      const summary = decodeEntities(r.summary);
-      return {
-        id: `${source.id}-${i}-${r.link}`,
-        title, link: r.link,
-        publishedAt: r.pubDate ? new Date(r.pubDate).toISOString() : now,
-        sourceName: source.name, sourceRegion: source.region,
-        tags: Array.from(new Set([...source.tags, ...detectTags(`${title} ${summary}`)])),
-        summary, image: r.image,
-      };
-    });
-    return { sourceId: source.id, sourceName: source.name, items };
-  } catch (e) {
-    return { sourceId: source.id, sourceName: source.name, items: [], error: String(e) };
-  }
-}
-
-async function fetchAll(srcs: Source[], concurrency: number, onResult: (r: FetchResult) => void) {
-  let i = 0;
-  const worker = async () => { while (i < srcs.length) { onResult(await fetchSource(srcs[i++])); } };
-  await Promise.all(Array.from({ length: Math.min(concurrency, srcs.length) }, worker));
-}
 
 function fmtDate(iso: string) {
   try { return new Date(iso).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" }); }
@@ -200,10 +155,9 @@ export default function Home() {
 }
 
 function NewsPage() {
-  const [results, setResults] = useState<FetchResult[]>([]);
+  const [allItems, setAllItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadedCount, setLoadedCount] = useState(0);
-  const [realCount, setRealCount] = useState(0);
+  const [isDemo, setIsDemo] = useState(false);
   const [translatingIds, setTranslatingIds] = useState<Set<string>>(new Set());
   const [translations, setTranslations] = useState<Record<string, { title: string; summary: string }>>({});
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -216,35 +170,44 @@ function NewsPage() {
   const [filterTab, setFilterTab] = useState<"temas" | "fuentes">("temas");
   const [page, setPage] = useState(1);
 
-  const onResult = useCallback((r: FetchResult) => {
-    setResults(p => [...p, r]);
-    setLoadedCount(c => c + 1);
-    if (!r.error) setRealCount(c => c + r.items.length);
+  // ── Fetch desde Supabase vía API route ──────────────────────────────────────
+  useEffect(() => {
+    fetch("/api/rss?limit=1000")
+      .then(r => r.json())
+      .then(json => {
+        const items: NewsItem[] = (json.items ?? []).map((row: NewsItem) => ({
+          ...row,
+          tags: row.tags ?? [],
+        }));
+        if (items.length > 0) {
+          setAllItems(items.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()));
+          setIsDemo(false);
+        } else {
+          setAllItems(DEMO);
+          setIsDemo(true);
+        }
+      })
+      .catch(() => {
+        setAllItems(DEMO);
+        setIsDemo(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchAll(sources, 4, onResult).then(() => setLoading(false)); }, [onResult]);
+  const itemsWithTranslations = useMemo(() =>
+    allItems.map(it => ({ ...it, translatedTitle: translations[it.id]?.title, translatedSummary: translations[it.id]?.summary })),
+    [allItems, translations]
+  );
 
   const availableSources = useMemo(() => {
-    const names = results.filter(r => !r.error && r.items.length > 0).map(r => r.sourceName);
+    const names = allItems.map(it => it.sourceName);
     return Array.from(new Set(names)).sort();
-  }, [results]);
-
-  const allItems = useMemo(() => {
-    const real: NewsItem[] = []; const seen = new Set<string>();
-    for (const r of results) for (const it of r.items) {
-      const k = it.link || it.id;
-      if (!seen.has(k)) { seen.add(k); real.push(it); }
-    }
-    const base = real.length > 0 ? real : DEMO;
-    return base
-      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-      .map(it => ({ ...it, translatedTitle: translations[it.id]?.title, translatedSummary: translations[it.id]?.summary }));
-  }, [results, translations]);
+  }, [allItems]);
 
   const filtered = useMemo(() => {
     const cutoff = last30 ? new Date(Date.now() - 30 * 86400000).toISOString() : null;
     const sq = search.toLowerCase().trim();
-    let base = showFavs ? allItems.filter(it => favorites.has(it.id)) : allItems;
+    let base = showFavs ? itemsWithTranslations.filter(it => favorites.has(it.id)) : itemsWithTranslations;
     return base.filter(it => {
       if (sq && !it.title.toLowerCase().includes(sq) && !(it.summary ?? "").toLowerCase().includes(sq)) return false;
       if (selTags.length > 0 && !selTags.some(t => it.tags.includes(t))) return false;
@@ -252,7 +215,7 @@ function NewsPage() {
       if (cutoff && it.publishedAt < cutoff) return false;
       return true;
     });
-  }, [allItems, search, selTags, selSources, last30, showFavs, favorites]);
+  }, [itemsWithTranslations, search, selTags, selSources, last30, showFavs, favorites]);
 
   useEffect(() => { setPage(1); }, [search, selTags, selSources, last30, showFavs]);
 
@@ -276,19 +239,17 @@ function NewsPage() {
   function toggleSource(name: string) { setSelSources(p => p.includes(name) ? p.filter(s => s !== name) : [...p, name]); }
 
   const activeFilters = selTags.length + selSources.length + (search ? 1 : 0) + (last30 ? 1 : 0);
-  const isDemo = realCount === 0 && !loading;
-  const failed = results.filter(r => r.error);
 
   const loadingStatus = (
     <div className="flex items-center gap-3 shrink-0">
       {loading
         ? <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="w-3 h-3 rounded-full border-2 border-[#3EB2ED] border-t-transparent animate-spin" />
-            <span className="hidden sm:block">{loadedCount}/{sources.length}</span>
+            <span className="hidden sm:block">Cargando…</span>
           </div>
         : <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="hidden sm:block">{sources.length - failed.length} fuentes activas</span>
+            <span className="hidden sm:block">{sources.length} fuentes · {allItems.length} noticias</span>
           </div>
       }
     </div>
@@ -300,7 +261,7 @@ function NewsPage() {
 
         {isDemo && (
           <div className="mb-4 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-sm text-amber-400 flex gap-2">
-            <span>⚠</span><span>Mostrando noticias de ejemplo. Las fuentes RSS no respondieron aún.</span>
+            <span>⚠</span><span>Mostrando noticias de ejemplo. La base de datos no tiene noticias aún.</span>
           </div>
         )}
 
@@ -375,7 +336,7 @@ function NewsPage() {
 
                 {filterTab === "fuentes" && (
                   <div className="flex flex-wrap gap-1.5">
-                    {(availableSources.length > 0 ? availableSources : sources.map(s => s.name)).map(name => (
+                    {availableSources.map(name => (
                       <button key={name} onClick={() => toggleSource(name)}
                         className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all border ${selSources.includes(name) ? "bg-[#3EB2ED]/15 text-[#3EB2ED] border-[#3EB2ED]/50" : "bg-transparent text-slate-500 border-slate-700 hover:border-slate-500 hover:text-slate-300"}`}>
                         {name}
@@ -437,17 +398,6 @@ function NewsPage() {
             <p className="text-lg font-bold text-slate-400">{showFavs ? "No tenés favoritas aún" : "Sin resultados"}</p>
             <p className="text-sm mt-1">{showFavs ? "Marcá noticias con ★ para guardarlas acá." : "Probá con otros filtros."}</p>
           </div>
-        )}
-
-        {failed.length > 0 && !loading && (
-          <details className="mt-12 border-t border-slate-800 pt-6">
-            <summary className="text-xs text-slate-600 font-semibold uppercase tracking-widest cursor-pointer hover:text-slate-400 transition-colors">
-              {failed.length} fuente{failed.length !== 1 ? "s" : ""} sin respuesta ▸
-            </summary>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {failed.map(s => <span key={s.sourceId} className="text-xs px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-slate-500">{s.sourceName}</span>)}
-            </div>
-          </details>
         )}
       </div>
     </Shell>
